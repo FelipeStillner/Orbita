@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - schema: "internal/database/schema"
+    queries: "internal/database/queries"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "database"
+        out: "internal/database"
+        # Use standard Go types for JSON
+        overrides:
+          - db_type: "json"
+            go_type: "encoding/json.RawMessage"
