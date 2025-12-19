@@ -20,3 +20,12 @@ type Place struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type PlaceImage struct {
+	ID          uuid.UUID
+	PlaceID     uuid.UUID
+	Url         string
+	Description sql.NullString
+	IsPrimary   sql.NullBool
+	CreatedAt   time.Time
+}
