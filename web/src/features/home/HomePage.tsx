@@ -7,12 +7,16 @@ export default function HomePage() {
     <div
       style={{
         height: "100vh",
+        width: "100vw",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        textAlign: "center",
         backgroundColor: "#0a0a0a",
         color: "white",
+        margin: 0,
+        padding: 0,
       }}
     >
       <h1 style={{ fontSize: "3rem", marginBottom: "1rem" }}>🪐 Orbita</h1>
