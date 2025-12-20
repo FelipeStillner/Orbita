@@ -1,6 +1,4 @@
 * How to populate the places database?
-* How to deploy the application?
-  * Database
-  * Application (Backend and Frontend)
-  * Images store
+* New kind of images storing?
+* It's time to run my database separated?
 * Recommendation algorithm?
