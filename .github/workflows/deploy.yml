@@ -1,0 +1,43 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches:
+      - main # Trigger only when pushing to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # 1. Go to project folder
+            cd ~/Orbita
+
+            # 2. Reset any local changes to ensure clean pull
+            git reset --hard origin/main
+
+            # 3. Pull latest code
+            git pull origin main
+
+            # 4. Rebuild the Frontend (Important!)
+            cd web
+            npm install
+            npm run build
+            cd ..
+
+            # 5. Restart Docker containers
+            # We use sudo because of your permissions, and --build to update images
+            sudo docker compose up -d --build
+
+            # 6. Optional: Run migrations if database changed
+            sudo make db-schema
