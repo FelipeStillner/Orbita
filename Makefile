@@ -14,12 +14,12 @@ db-schema:
 
 # Insert the fake data
 db-seed:
-	docker exec -i orbita_db psql -U orbita_user -d orbita_db -c "\
-	INSERT INTO places (name, description, category, location) \
-	VALUES ('Orbita HQ', 'The birthplace of the project', 'office', ST_SetSRID(ST_MakePoint(-9.139, 38.722), 4326));"
+	cat internal/database/seed.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
 
 # Reset everything (Stop -> Start -> Schema -> Seed)
-db-reset: db-down db-up
+db-reset:
+	docker-compose down -v
+	docker-compose up -d
 	@echo "Waiting for DB to start..."
 	@sleep 3
 	make db-schema
