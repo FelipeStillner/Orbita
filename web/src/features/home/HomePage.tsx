@@ -23,6 +23,7 @@ export default function HomePage() {
       <p style={{ marginBottom: "2rem", opacity: 0.8 }}>
         Discover the world, one swipe at a time.
       </p>
+      <p style={{ marginBottom: "2rem", opacity: 0.8 }}>Test1</p>
 
       <button
         onClick={() => navigate("/feed")}
