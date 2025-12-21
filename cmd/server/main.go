@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -45,8 +46,29 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to load frontend assets: ", err)
 	}
-	fsHandler := http.FileServer(http.FS(assets))
-	server.Router.Handle("/", fsHandler)
+
+	// SPA Handler Logic
+	fileServer := http.FileServer(http.FS(assets))
+
+	spaHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/")
+
+		if path == "" {
+			path = "index.html"
+		}
+
+		f, err := assets.Open(path)
+		if err != nil {
+			r.URL.Path = "/"
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
+		f.Close()
+		fileServer.ServeHTTP(w, r)
+	})
+
+	server.Router.Handle("/", spaHandler)
 
 	// run
 	port := os.Getenv("PORT")
