@@ -1,4 +1,3 @@
-* How to populate the places database?
-* New kind of images storing?
-* It's time to run my database separated?
+* How to populate images?
 * Recommendation algorithm?
+* User authentication and authorization for a better recommendation algorithm?

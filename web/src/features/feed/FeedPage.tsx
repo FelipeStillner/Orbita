@@ -1,38 +1,63 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import PlaceReel from "./components/PlaceReel";
 import type { FeatureCollection } from "./types";
 import { useGeolocation } from "../../hooks/useGeolocation";
+import { useEffect, useRef } from "react";
 
-// 1. Accept coordinates as arguments
-const fetchPlaces = async (lat: number, lng: number) => {
+// 1. Update fetcher to accept pageParam (defaulting to 1)
+const fetchPlaces = async (lat: number, lng: number, page: number) => {
   const { data } = await axios.get<FeatureCollection>(`/api/places`, {
-    params: { lat, long: lng },
+    params: { lat, long: lng, page, limit: 5 }, // Fetch 5 items per "page"
   });
   return data;
 };
 
 export default function FeedPage() {
-  // 2. Get User Location
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
-  // Default to Lisbon (Orbita HQ) if permission denied or error
+  // Default to Lisbon (Orbita HQ)
   const defaultLat = 38.722;
   const defaultLng = -9.139;
 
   const currentLat = location?.lat ?? defaultLat;
   const currentLng = location?.lng ?? defaultLng;
 
-  // 3. Fetch Data (Only runs when we have a lat/lng decision)
-  const { data, isLoading: dataLoading } = useQuery({
-    queryKey: ["feed", currentLat, currentLng], // Unique key per location
-    queryFn: () => fetchPlaces(currentLat, currentLng),
-    enabled: !locLoading, // Don't fetch until we know where we are
-  });
+  // 2. Use Infinite Query
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["feed", currentLat, currentLng],
+      queryFn: ({ pageParam = 1 }) =>
+        fetchPlaces(currentLat, currentLng, pageParam),
+      getNextPageParam: (lastPage, allPages) => {
+        // Logic: If the API returns fewer items than the limit (5), we are at the end.
+        // Otherwise, assume there is a next page.
+        const limit = 5;
+        if (lastPage.features.length < limit) return undefined;
+        return allPages.length + 1;
+      },
+      enabled: !locLoading,
+      initialPageParam: 1,
+    });
 
-  // 4. Loading State
-  if (locLoading || dataLoading) {
+  // 3. Infinite Scroll Trigger (Intersection Observer)
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      // If the "loadMore" div is visible AND we have more pages, fetch!
+      if (entries[0].isIntersecting && hasNextPage) {
+        fetchNextPage();
+      }
+    });
+
+    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [hasNextPage, fetchNextPage]);
+
+  if (locLoading || isLoading) {
     return (
       <div
         style={{
@@ -40,16 +65,15 @@ export default function FeedPage() {
           backgroundColor: "#000",
           color: "white",
           display: "flex",
-          alignItems: "center",
           justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        Finding the best spots around you...
+        Finding the best spots...
       </div>
     );
   }
 
-  // 5. Render
   return (
     <div
       className="no-scrollbar"
@@ -81,7 +105,6 @@ export default function FeedPage() {
         ←
       </Link>
 
-      {/* Show a small toast if we are using fallback data */}
       {locError && (
         <div
           style={{
@@ -100,23 +123,28 @@ export default function FeedPage() {
         </div>
       )}
 
-      {data?.features.map((place) => (
-        <PlaceReel key={place.properties.id} data={place.properties} />
+      {/* 4. Flatten the pages array to render all loaded items */}
+      {data?.pages.map((group, i) => (
+        <div key={i}>
+          {group.features.map((place) => (
+            <PlaceReel key={place.properties.id} data={place.properties} />
+          ))}
+        </div>
       ))}
 
-      {data?.features.length === 0 && (
-        <div
-          style={{
-            height: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-          }}
-        >
-          No places found nearby.
-        </div>
-      )}
+      {/* 5. Invisible element at the bottom to trigger the next fetch */}
+      <div
+        ref={loadMoreRef}
+        style={{
+          height: "50px",
+          scrollSnapAlign: "start",
+          color: "gray",
+          textAlign: "center",
+          paddingTop: "20px",
+        }}
+      >
+        {isFetchingNextPage ? "Loading more..." : ""}
+      </div>
     </div>
   );
 }

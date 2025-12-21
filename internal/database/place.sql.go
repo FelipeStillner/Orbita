@@ -72,7 +72,6 @@ SELECT
     p.category,
     p.description,
     ST_AsGeoJSON(p.location)::json AS geojson,
-    -- The Magic: Aggregate all images into a JSON array automatically
     COALESCE(
         json_agg(
             json_build_object(
@@ -87,14 +86,17 @@ FROM place p
 LEFT JOIN place_image i ON p.id = i.place_id
 WHERE ST_DWithin(
     p.location,
-    ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326),
-    $3::float
+    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326),
+    $5::float
 )
 GROUP BY p.id
-LIMIT 50
+ORDER BY p.id  -- Always order by ID to ensure consistent pages
+LIMIT $1 OFFSET $2
 `
 
 type GetNearbyPlacesParams struct {
+	Limit        int32
+	Offset       int32
 	Lon          float64
 	Lat          float64
 	RadiusMeters float64
@@ -110,7 +112,13 @@ type GetNearbyPlacesRow struct {
 }
 
 func (q *Queries) GetNearbyPlaces(ctx context.Context, arg GetNearbyPlacesParams) ([]GetNearbyPlacesRow, error) {
-	rows, err := q.db.QueryContext(ctx, getNearbyPlaces, arg.Lon, arg.Lat, arg.RadiusMeters)
+	rows, err := q.db.QueryContext(ctx, getNearbyPlaces,
+		arg.Limit,
+		arg.Offset,
+		arg.Lon,
+		arg.Lat,
+		arg.RadiusMeters,
+	)
 	if err != nil {
 		return nil, err
 	}

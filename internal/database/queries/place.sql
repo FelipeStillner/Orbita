@@ -17,7 +17,6 @@ SELECT
     p.category,
     p.description,
     ST_AsGeoJSON(p.location)::json AS geojson,
-    -- The Magic: Aggregate all images into a JSON array automatically
     COALESCE(
         json_agg(
             json_build_object(
@@ -36,4 +35,5 @@ WHERE ST_DWithin(
     @radius_meters::float
 )
 GROUP BY p.id
-LIMIT 50;
+ORDER BY p.id
+LIMIT $1 OFFSET $2;
