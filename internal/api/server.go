@@ -31,10 +31,6 @@ func (s *Server) mountRoutes() {
 
 	hs := healthHandler.NewHandler()
 	hs.RegisterRoutes(s.Router)
-
-	// Static Files (Uploads)
-	fileServer := http.FileServer(http.Dir("uploads"))
-	s.Router.Handle("/uploads/", http.StripPrefix("/uploads/", fileServer))
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

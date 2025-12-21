@@ -3,11 +3,11 @@ package place
 import (
 	"context"
 	"database/sql"
-	"io"
-	"os"
+	"fmt"
 	"path/filepath"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
+	"github.com/FelipeStillner/Orbita/internal/storage"
 
 	"github.com/google/uuid"
 )
@@ -26,20 +26,17 @@ func (s *Service) Create(ctx context.Context, params CreateParams) (uuid.UUID, e
 
 	for _, img := range params.Images {
 		ext := filepath.Ext(img.Filename)
-		newFilename := uuid.New().String() + ext
-		savePath := filepath.Join("uploads", newFilename)
+		newFilename := "places/" + uuid.New().String() + ext
 
-		dst, err := os.Create(savePath)
+		publicURL, err := storage.UploadToGCS(img.Data, newFilename)
 		if err != nil {
+			fmt.Printf("Failed to upload image: %v\n", err)
 			continue
 		}
 
-		io.Copy(dst, img.Data)
-		dst.Close()
-
 		s.queries.AddPlaceImage(ctx, database.AddPlaceImageParams{
 			PlaceID:     id,
-			Url:         "/uploads/" + newFilename,
+			Url:         publicURL,
 			Description: sql.NullString{String: "Uploaded", Valid: true},
 			IsPrimary:   sql.NullBool{Bool: false, Valid: true},
 		})
