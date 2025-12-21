@@ -6,10 +6,9 @@ import type { FeatureCollection } from "./types";
 import { useGeolocation } from "../../hooks/useGeolocation";
 import { useEffect, useRef } from "react";
 
-// 1. Update fetcher to accept pageParam (defaulting to 1)
 const fetchPlaces = async (lat: number, lng: number, page: number) => {
   const { data } = await axios.get<FeatureCollection>(`/api/places`, {
-    params: { lat, long: lng, page, limit: 5 }, // Fetch 5 items per "page"
+    params: { lat, long: lng, page, limit: 5 },
   });
   return data;
 };
@@ -17,47 +16,76 @@ const fetchPlaces = async (lat: number, lng: number, page: number) => {
 export default function FeedPage() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
-  // Default to Lisbon (Orbita HQ)
-  const defaultLat = 38.722;
-  const defaultLng = -9.139;
-
-  const currentLat = location?.lat ?? defaultLat;
-  const currentLng = location?.lng ?? defaultLng;
-
-  // 2. Use Infinite Query
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["feed", currentLat, currentLng],
-      queryFn: ({ pageParam = 1 }) =>
-        fetchPlaces(currentLat, currentLng, pageParam),
+      queryKey: ["feed", location?.lat, location?.lng],
+
+      queryFn: ({ pageParam = 1 }) => {
+        if (!location) throw new Error("Location not ready");
+        return fetchPlaces(location.lat, location.lng, pageParam);
+      },
+
       getNextPageParam: (lastPage, allPages) => {
-        // Logic: If the API returns fewer items than the limit (5), we are at the end.
-        // Otherwise, assume there is a next page.
         const limit = 5;
         if (lastPage.features.length < limit) return undefined;
         return allPages.length + 1;
       },
-      enabled: !locLoading,
+
+      enabled: !!location && !locLoading && !locError,
+
       initialPageParam: 1,
     });
 
-  // 3. Infinite Scroll Trigger (Intersection Observer)
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
-      // If the "loadMore" div is visible AND we have more pages, fetch!
       if (entries[0].isIntersecting && hasNextPage) {
         fetchNextPage();
       }
     });
-
     if (loadMoreRef.current) observer.observe(loadMoreRef.current);
-
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage]);
 
-  if (locLoading || isLoading) {
+  // --- ERROR STATE (Location Denied) ---
+  if (locError) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "#000",
+          color: "white",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+          padding: "20px",
+        }}
+      >
+        <h2 style={{ marginBottom: "10px" }}>Location Required</h2>
+        <p style={{ marginBottom: "20px", color: "#aaa", maxWidth: "300px" }}>
+          We need your location to show you the best places nearby. Please
+          enable location access in your browser settings.
+        </p>
+        <Link
+          to="/"
+          style={{
+            color: "white",
+            textDecoration: "underline",
+            fontSize: "1rem",
+          }}
+        >
+          Go Back Home
+        </Link>
+      </div>
+    );
+  }
+
+  // --- LOADING STATE ---
+  if (locLoading || !location || isLoading) {
     return (
       <div
         style={{
@@ -74,6 +102,7 @@ export default function FeedPage() {
     );
   }
 
+  // --- SUCCESS STATE ---
   return (
     <div
       className="no-scrollbar"
@@ -105,25 +134,7 @@ export default function FeedPage() {
         ←
       </Link>
 
-      {locError && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            zIndex: 100,
-            background: "rgba(255, 100, 100, 0.8)",
-            padding: "5px 10px",
-            borderRadius: "8px",
-            color: "white",
-            fontSize: "0.8rem",
-          }}
-        >
-          Location denied. Showing Lisbon.
-        </div>
-      )}
-
-      {/* 4. Flatten the pages array to render all loaded items */}
+      {/* Render Feed */}
       {data?.pages.map((group, i) => (
         <div key={i}>
           {group.features.map((place) => (
@@ -132,7 +143,7 @@ export default function FeedPage() {
         </div>
       ))}
 
-      {/* 5. Invisible element at the bottom to trigger the next fetch */}
+      {/* Infinite Scroll Trigger */}
       <div
         ref={loadMoreRef}
         style={{
