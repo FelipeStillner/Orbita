@@ -11,8 +11,8 @@ VALUES (
     ST_SetSRID(ST_MakePoint(-9.1441, 38.7128), 4326)
 );
 INSERT INTO place_image (place_id, url, description, is_primary) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'http://localhost:8080/uploads/bairro-alto-1.png', 'Street view of Bairro Alto at night', true),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'http://localhost:8080/uploads/bairro-alto-2.png', 'Traditional Lisbon architecture in Bairro Alto', false);
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'https://storage.googleapis.com/orbita-images-prod/places/bairro-alto-1.png', 'Street view of Bairro Alto at night', true),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'https://storage.googleapis.com/orbita-images-prod/places/bairro-alto-2.png', 'Traditional Lisbon architecture in Bairro Alto', false);
 
 -- Place 2: Torre de Belém
 INSERT INTO place (id, name, category, description, location)
@@ -24,8 +24,8 @@ VALUES (
     ST_SetSRID(ST_MakePoint(-9.2158, 38.6916), 4326)
 );
 INSERT INTO place_image (place_id, url, description, is_primary) VALUES
-('b1ffcd88-0d1c-5fa9-cc7e-7cc0ce491b22', 'http://localhost:8080/uploads/torre-de-belem-1.png', 'The Belém Tower against the Tagus River', true),
-('b1ffcd88-0d1c-5fa9-cc7e-7cc0ce491b22', 'http://localhost:8080/uploads/torre-de-belem-2.png', 'Intricate Manueline carvings on the tower facade', false);
+('b1ffcd88-0d1c-5fa9-cc7e-7cc0ce491b22', 'https://storage.googleapis.com/orbita-images-prod/places/torre-de-belem-1.png', 'The Belém Tower against the Tagus River', true),
+('b1ffcd88-0d1c-5fa9-cc7e-7cc0ce491b22', 'https://storage.googleapis.com/orbita-images-prod/places/torre-de-belem-2.png', 'Intricate Manueline carvings on the tower facade', false);
 
 -- Place 3: Castelo de São Jorge
 INSERT INTO place (id, name, category, description, location)
@@ -38,4 +38,4 @@ VALUES (
 );
 
 INSERT INTO place_image (place_id, url, description, is_primary) VALUES
-('e422fa11-3a4f-82d2-ff01-0ff3fa724e55', 'http://localhost:8080/uploads/castelo-de-sao-jorge-1.png', 'View of the castle walls overlooking Lisbon', true);
+('e422fa11-3a4f-82d2-ff01-0ff3fa724e55', 'https://storage.googleapis.com/orbita-images-prod/places/castelo-de-sao-jorge-1.png', 'View of the castle walls overlooking Lisbon', true);

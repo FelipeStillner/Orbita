@@ -33,12 +33,6 @@ jobs:
             # 2. Build the Backend Binary
             go build -o bin/orbita cmd/server/main.go
 
-            # 3. Start/Update Database (Docker)
-            sudo docker compose up -d
-
-            # 4. Run Migrations
-            sudo make db-schema
-
             # 5. STOP the old server (Kill process using port 8080 or name orbita)
             echo "Stopping old server..."
             sudo pkill orbita || true
