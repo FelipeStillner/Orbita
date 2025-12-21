@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/FelipeStillner/Orbita/internal/adapter/osm"
 	"github.com/FelipeStillner/Orbita/internal/database"
@@ -88,11 +89,35 @@ func (s *Service) createPlace(ctx context.Context, element osm.Element) {
 		category = a
 	}
 
-	s.queries.CreatePlace(ctx, database.CreatePlaceParams{
+	placeID, err := s.queries.CreatePlace(ctx, database.CreatePlaceParams{
 		Name:        name,
 		Description: sql.NullString{String: "Imported from OpenStreetMap", Valid: true},
 		Category:    category,
 		Column4:     element.Lon,
 		Column5:     element.Lat,
 	})
+
+	if err != nil {
+		log.Printf("Failed to insert place %s: %v", name, err)
+		return
+	}
+
+	if wikidataID, ok := element.Tags["wikidata"]; ok {
+		imageURL, err := s.wikidata.FetchImageURL(wikidataID)
+
+		if err == nil && imageURL != "" {
+			err = s.queries.AddPlaceImage(ctx, database.AddPlaceImageParams{
+				PlaceID:     placeID,
+				Url:         imageURL,
+				Description: sql.NullString{String: "Wikidata Source", Valid: true},
+				IsPrimary:   sql.NullBool{Bool: true, Valid: true},
+			})
+
+			if err != nil {
+				log.Printf("Failed to save image for %s: %v", name, err)
+			} else {
+				log.Printf("Saved image for %s", name)
+			}
+		}
+	}
 }
