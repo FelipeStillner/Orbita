@@ -59,7 +59,10 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 	}
 
 	// 2. Create Places from OSM Data
-	for _, element := range osmData.Elements {
+	for i, element := range osmData.Elements {
+		if i > 11 {
+			continue
+		}
 		s.createPlace(ctx, element)
 	}
 
