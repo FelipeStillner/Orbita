@@ -29,3 +29,11 @@ type PlaceImage struct {
 	IsPrimary   sql.NullBool
 	CreatedAt   time.Time
 }
+
+type SearchedLocation struct {
+	ID        uuid.UUID
+	Lat       float64
+	Long      float64
+	RadiusKm  float64
+	CreatedAt time.Time
+}
