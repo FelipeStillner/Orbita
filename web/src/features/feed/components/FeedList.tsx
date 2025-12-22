@@ -18,8 +18,7 @@ export default function FeedList({
   onOpenMap,
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
-
-  const [isSnapEnabled, setIsSnapEnabled] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useLayoutEffect(() => {
     if (listRef.current) {
@@ -27,8 +26,8 @@ export default function FeedList({
     }
 
     const timer = setTimeout(() => {
-      setIsSnapEnabled(true);
-    }, 100);
+      setIsReady(true);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, []);
@@ -38,7 +37,7 @@ export default function FeedList({
       ref={listRef}
       className="no-scrollbar"
       style={{
-        height: "100vh",
+        height: "100dvh",
         width: "100vw",
         backgroundColor: "#000",
         overflowY: "scroll",
@@ -46,8 +45,10 @@ export default function FeedList({
         position: "absolute",
         top: 0,
         left: 0,
-        scrollSnapType: isSnapEnabled ? "y mandatory" : "none",
-        scrollBehavior: isSnapEnabled ? "smooth" : "auto",
+        overflowAnchor: "none",
+        scrollSnapType: isReady ? "y mandatory" : "none",
+        opacity: isReady ? 1 : 0,
+        transition: "opacity 0.3s ease-in",
       }}
     >
       <Link
@@ -77,11 +78,8 @@ export default function FeedList({
       <div
         ref={loadMoreRef}
         style={{
-          height: "50px",
-          scrollSnapAlign: "start",
-          color: "gray",
-          textAlign: "center",
-          paddingTop: "20px",
+          height: "10px",
+          width: "100%",
         }}
       >
         {isFetchingNextPage ? "Loading more..." : ""}

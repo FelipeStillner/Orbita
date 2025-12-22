@@ -20,7 +20,7 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
   return (
     <div
       style={{
-        height: "100vh",
+        height: "100dvh",
         width: "100vw",
         position: "relative",
         scrollSnapAlign: "start",
@@ -29,7 +29,6 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* --- IMAGE CAROUSEL --- */}
       <div
         className="no-scrollbar"
         style={{
@@ -67,7 +66,6 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
               }}
             />
 
-            {/* Image Counter */}
             {images.length > 1 && (
               <div
                 style={{
@@ -89,38 +87,32 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
         ))}
       </div>
 
-      {/* --- MAP BUTTON (Floating Right Center) --- */}
-      <button
+      <div
+        role="button"
         onClick={(e) => {
           e.stopPropagation();
           onOpenMap();
         }}
         style={{
           position: "absolute",
-          right: "16px", // Distance from right edge
-          top: "50%", // Center vertically
+          right: "20px",
+          top: "50%",
           transform: "translateY(-50%)",
-          zIndex: 50, // Ensure it is above images
-
-          width: "60px", // Bigger size
-          height: "60px",
-          borderRadius: "50%", // Circular
-
-          backgroundColor: "rgba(255, 255, 255, 0.15)", // Frosted glass look
-          backdropFilter: "blur(8px)",
+          zIndex: 50,
+          width: "56px",
+          height: "56px",
+          borderRadius: "50%",
+          backgroundColor: "rgba(255, 255, 255, 0.15)",
+          backdropFilter: "blur(10px)",
           border: "1px solid rgba(255, 255, 255, 0.3)",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.4)",
-
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           color: "white",
           cursor: "pointer",
-          outline: "none",
         }}
-        aria-label="Open in Maps"
       >
-        {/* Map Icon (Bigger) */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="28"
@@ -136,16 +128,16 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
           <line x1="8" y1="2" x2="8" y2="18"></line>
           <line x1="16" y1="6" x2="16" y2="22"></line>
         </svg>
-      </button>
+      </div>
 
-      {/* --- INFO TEXT (Bottom Left) --- */}
+      {/* --- INFO TEXT --- */}
       <div
         style={{
           position: "absolute",
           bottom: 0,
           left: 0,
-          width: "100%", // Full width, but we pad the content so it doesn't overlap the button
-          padding: "24px 80px 40px 20px", // Right padding 80px to avoid button overlap if button moves down
+          width: "100%",
+          padding: "24px 90px 40px 20px",
           zIndex: 10,
           color: "white",
           pointerEvents: "none",
@@ -186,7 +178,6 @@ export default function PlaceReel({ data, onOpenMap }: Props) {
             fontSize: "1rem",
             lineHeight: "1.4",
             textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-            maxWidth: "100%",
           }}
         >
           {data.description}
