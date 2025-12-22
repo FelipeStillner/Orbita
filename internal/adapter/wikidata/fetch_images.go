@@ -8,44 +8,51 @@ import (
 	"strings"
 )
 
-func (c *Client) FetchImageURL(wikidataID string) (string, error) {
+func (c *Client) FetchImageURLs(wikidataID string) ([]string, error) {
 	url := fmt.Sprintf("https://www.wikidata.org/wiki/Special:EntityData/%s.json", wikidataID)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	req.Header.Set("User-Agent", "OrbitaProject/1.0 (your_email@example.com)")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("wikidata API error: %d - check User-Agent or Rate Limits", resp.StatusCode)
+		return nil, fmt.Errorf("wikidata API error: %d", resp.StatusCode)
 	}
 
 	var data data
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	claims := data.Entities[wikidataID].Claims.P18
 	if len(claims) == 0 {
-		return "", fmt.Errorf("no image found for %s", wikidataID)
+		return nil, fmt.Errorf("no image found for %s", wikidataID)
 	}
-	fileName := claims[0].Mainsnak.Datavalue.Value
 
-	fileName = strings.ReplaceAll(fileName, " ", "_")
-	hash := md5.Sum([]byte(fileName))
-	hashStr := fmt.Sprintf("%x", hash)
-	part1 := hashStr[:1]
-	part2 := hashStr[:2]
+	count := max(len(claims), 5)
 
-	finalURL := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s", part1, part2, fileName)
+	var urls []string
+	for i := range count {
+		fileName := claims[i].Mainsnak.Datavalue.Value
 
-	return finalURL, nil
+		fileNameClean := strings.ReplaceAll(fileName, " ", "_")
+		hash := md5.Sum([]byte(fileNameClean))
+		hashStr := fmt.Sprintf("%x", hash)
+		part1 := hashStr[:1]
+		part2 := hashStr[:2]
+
+		finalURL := fmt.Sprintf("https://upload.wikimedia.org/wikipedia/commons/%s/%s/%s", part1, part2, fileNameClean)
+		urls = append(urls, finalURL)
+	}
+
+	return urls, nil
 }

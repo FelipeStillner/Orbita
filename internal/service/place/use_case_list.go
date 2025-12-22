@@ -126,7 +126,7 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 
 	type imageResult struct {
 		PlaceID uuid.UUID
-		URL     string
+		URLs    []string
 	}
 
 	imgResultsChan := make(chan imageResult, len(placeIDs))
@@ -141,9 +141,11 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 		wg.Add(1)
 		go func(pid uuid.UUID, wid string) {
 			defer wg.Done()
-			url, err := s.wikidata.FetchImageURL(wid)
-			if err == nil && url != "" {
-				imgResultsChan <- imageResult{PlaceID: pid, URL: url}
+
+			urls, err := s.wikidata.FetchImageURLs(wid)
+
+			if err == nil && len(urls) > 0 {
+				imgResultsChan <- imageResult{PlaceID: pid, URLs: urls}
 			}
 		}(placeID, wikiID)
 	}
@@ -161,10 +163,13 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 	)
 
 	for res := range imgResultsChan {
-		imgPlaceIDs = append(imgPlaceIDs, res.PlaceID)
-		imgURLs = append(imgURLs, res.URL)
-		imgDescs = append(imgDescs, "Wikidata Source")
-		imgIsPrimaries = append(imgIsPrimaries, true)
+		for i, url := range res.URLs {
+			imgPlaceIDs = append(imgPlaceIDs, res.PlaceID)
+			imgURLs = append(imgURLs, url)
+			imgDescs = append(imgDescs, "Wikidata Source")
+
+			imgIsPrimaries = append(imgIsPrimaries, i == 0)
+		}
 	}
 
 	if len(imgURLs) > 0 {
