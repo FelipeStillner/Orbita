@@ -26,7 +26,7 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 
 	offset := (page - 1) * limit
 
-	places, err := h.service.ListNearby(r.Context(), lat, long, int32(limit), int32(offset))
+	places, err := h.service.List(r.Context(), lat, long, int32(limit), int32(offset))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

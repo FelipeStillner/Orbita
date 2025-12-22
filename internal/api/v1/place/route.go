@@ -16,5 +16,4 @@ func NewHandler(s *place.Service) *handler {
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /api/places", h.handleList)
-	router.HandleFunc("POST /api/places", h.handleCreate)
 }

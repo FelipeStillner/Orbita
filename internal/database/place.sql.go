@@ -11,61 +11,83 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
-const addPlaceImage = `-- name: AddPlaceImage :exec
+const addPlaceImagesBatch = `-- name: AddPlaceImagesBatch :exec
 INSERT INTO place_image (place_id, url, description, is_primary)
-VALUES ($1, $2, $3, $4)
+SELECT
+    unnest($1::uuid[]),
+    unnest($2::text[]),
+    unnest($3::text[]),
+    unnest($4::boolean[])
 `
 
-type AddPlaceImageParams struct {
-	PlaceID     uuid.UUID
-	Url         string
-	Description sql.NullString
-	IsPrimary   sql.NullBool
+type AddPlaceImagesBatchParams struct {
+	PlaceIds     []uuid.UUID
+	Urls         []string
+	Descriptions []string
+	IsPrimaries  []bool
 }
 
-func (q *Queries) AddPlaceImage(ctx context.Context, arg AddPlaceImageParams) error {
-	_, err := q.db.ExecContext(ctx, addPlaceImage,
-		arg.PlaceID,
-		arg.Url,
-		arg.Description,
-		arg.IsPrimary,
+func (q *Queries) AddPlaceImagesBatch(ctx context.Context, arg AddPlaceImagesBatchParams) error {
+	_, err := q.db.ExecContext(ctx, addPlaceImagesBatch,
+		pq.Array(arg.PlaceIds),
+		pq.Array(arg.Urls),
+		pq.Array(arg.Descriptions),
+		pq.Array(arg.IsPrimaries),
 	)
 	return err
 }
 
-const createPlace = `-- name: CreatePlace :one
+const createPlacesBatch = `-- name: CreatePlacesBatch :many
 INSERT INTO place (name, description, category, location)
-VALUES (
-    $1, $2, $3,
-    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)
-)
+SELECT
+    unnest($1::text[]),
+    unnest($2::text[]),
+    unnest($3::text[]),
+    ST_SetSRID(ST_MakePoint(unnest($4::float8[]), unnest($5::float8[])), 4326)
 RETURNING id
 `
 
-type CreatePlaceParams struct {
-	Name        string
-	Description sql.NullString
-	Category    string
-	Column4     float64
-	Column5     float64
+type CreatePlacesBatchParams struct {
+	Names        []string
+	Descriptions []string
+	Categories   []string
+	Longs        []float64
+	Lats         []float64
 }
 
-func (q *Queries) CreatePlace(ctx context.Context, arg CreatePlaceParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createPlace,
-		arg.Name,
-		arg.Description,
-		arg.Category,
-		arg.Column4,
-		arg.Column5,
+func (q *Queries) CreatePlacesBatch(ctx context.Context, arg CreatePlacesBatchParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, createPlacesBatch,
+		pq.Array(arg.Names),
+		pq.Array(arg.Descriptions),
+		pq.Array(arg.Categories),
+		pq.Array(arg.Longs),
+		pq.Array(arg.Lats),
 	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-const getNearbyPlaces = `-- name: GetNearbyPlaces :many
+const listPlaces = `-- name: ListPlaces :many
 SELECT
     p.id,
     p.name,
@@ -90,11 +112,11 @@ WHERE ST_DWithin(
     $5::float
 )
 GROUP BY p.id
-ORDER BY p.id  -- Always order by ID to ensure consistent pages
+ORDER BY p.id
 LIMIT $1 OFFSET $2
 `
 
-type GetNearbyPlacesParams struct {
+type ListPlacesParams struct {
 	Limit        int32
 	Offset       int32
 	Lon          float64
@@ -102,7 +124,7 @@ type GetNearbyPlacesParams struct {
 	RadiusMeters float64
 }
 
-type GetNearbyPlacesRow struct {
+type ListPlacesRow struct {
 	ID          uuid.UUID
 	Name        string
 	Category    string
@@ -111,8 +133,8 @@ type GetNearbyPlacesRow struct {
 	Images      json.RawMessage
 }
 
-func (q *Queries) GetNearbyPlaces(ctx context.Context, arg GetNearbyPlacesParams) ([]GetNearbyPlacesRow, error) {
-	rows, err := q.db.QueryContext(ctx, getNearbyPlaces,
+func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListPlacesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPlaces,
 		arg.Limit,
 		arg.Offset,
 		arg.Lon,
@@ -123,9 +145,9 @@ func (q *Queries) GetNearbyPlaces(ctx context.Context, arg GetNearbyPlacesParams
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetNearbyPlacesRow
+	var items []ListPlacesRow
 	for rows.Next() {
-		var i GetNearbyPlacesRow
+		var i ListPlacesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

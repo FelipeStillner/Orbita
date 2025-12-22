@@ -7,7 +7,7 @@ import (
 )
 
 func (c *Client) FetchPlaces(lat, long float64, radiusMeters int) (*OSMResponse, error) {
-	query := fmt.Sprintf(templateQuery, lat, long)
+	query := fmt.Sprintf(templateQuery, radiusMeters, lat, long)
 
 	resp, err := c.httpClient.PostForm(overpassURL, url.Values{"data": {query}})
 	if err != nil {
@@ -29,19 +29,19 @@ const templateQuery = `
 	[out:json][timeout:25];
 	(
 	  // --- TOURISM & ARTS ---
-	  nwr["tourism"~"museum|gallery|viewpoint|attraction|zoo|theme_park|aquarium"]["wikidata"](around:10000,%[1]f,%[2]f);
+	  nwr["tourism"~"museum|gallery|viewpoint|attraction|zoo|theme_park|aquarium"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
 
-	  // --- PERFORMING ARTS (Operas, Theaters) ---
-	  nwr["amenity"~"theatre|arts_centre|planetarium"]["wikidata"](around:10000,%[1]f,%[2]f);
+	  // --- PERFORMING ARTS ---
+	  nwr["amenity"~"theatre|arts_centre|planetarium"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
 
 	  // --- HISTORY & MONUMENTS ---
-	  nwr["historic"]["wikidata"](around:10000,%[1]f,%[2]f);
+	  nwr["historic"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
 
-	  // --- RELIGION (Cathedrals) ---
-	  nwr["building"="cathedral"](around:10000,%[1]f,%[2]f);
+	  // --- RELIGION ---
+	  nwr["building"="cathedral"](around:%[1]d,%[2]f,%[3]f);
 
-	  // --- PUBLIC SPACES (Squares/Plazas) ---
-	  nwr["place"="square"]["wikidata"](around:10000,%[1]f,%[2]f);
+	  // --- PUBLIC SPACES ---
+	  nwr["place"="square"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
 	);
 	out center;
 `

@@ -1,16 +1,4 @@
--- name: CreatePlace :one
-INSERT INTO place (name, description, category, location)
-VALUES (
-    $1, $2, $3,
-    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)
-)
-RETURNING id;
-
--- name: AddPlaceImage :exec
-INSERT INTO place_image (place_id, url, description, is_primary)
-VALUES ($1, $2, $3, $4);
-
--- name: GetNearbyPlaces :many
+-- name: ListPlaces :many
 SELECT
     p.id,
     p.name,
@@ -37,3 +25,20 @@ WHERE ST_DWithin(
 GROUP BY p.id
 ORDER BY p.id
 LIMIT $1 OFFSET $2;
+
+-- name: CreatePlacesBatch :many
+INSERT INTO place (name, description, category, location)
+SELECT
+    unnest(@names::text[]),
+    unnest(@descriptions::text[]),
+    unnest(@categories::text[]),
+    ST_SetSRID(ST_MakePoint(unnest(@longs::float8[]), unnest(@lats::float8[])), 4326)
+RETURNING id;
+
+-- name: AddPlaceImagesBatch :exec
+INSERT INTO place_image (place_id, url, description, is_primary)
+SELECT
+    unnest(@place_ids::uuid[]),
+    unnest(@urls::text[]),
+    unnest(@descriptions::text[]),
+    unnest(@is_primaries::boolean[]);
