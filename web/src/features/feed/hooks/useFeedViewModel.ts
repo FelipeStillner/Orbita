@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGeolocation } from "../../../hooks/useGeolocation";
 import { fetchPlaces } from "../api/feedApi";
-import type { PlaceFeature } from "../types";
+import type { FeatureCollection, PlaceFeature } from "../types";
 
 export function useFeedViewModel() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
+    useInfiniteQuery<FeatureCollection>({
       queryKey: ["feed", location?.lat, location?.lng],
       queryFn: ({ pageParam = 1 }) => {
         if (!location) throw new Error("Location not ready");
@@ -20,7 +20,6 @@ export function useFeedViewModel() {
         return allPages.length + 1;
       },
       enabled: !!location && !locLoading && !locError,
-      initialPageParam: 1,
     });
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -36,7 +35,8 @@ export function useFeedViewModel() {
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  const places = data?.pages.flatMap((page) => page.features) || [];
+  const places =
+    data?.pages.flatMap((page: FeatureCollection) => page.features) || [];
 
   const handleOpenMap = (place: PlaceFeature) => {
     const [lng, lat] = place.geometry.coordinates;
