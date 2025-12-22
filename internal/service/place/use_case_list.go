@@ -84,6 +84,18 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 			continue
 		}
 
+		lat := element.Lat
+		lon := element.Lon
+
+		if lat == 0 && lon == 0 && element.Center != nil {
+			lat = element.Center.Lat
+			lon = element.Center.Lon
+		}
+
+		if lat == 0 && lon == 0 {
+			continue
+		}
+
 		cat := "General"
 		if t, ok := element.Tags["tourism"]; ok {
 			cat = t
@@ -94,8 +106,10 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 		names = append(names, name)
 		descriptions = append(descriptions, "Imported from OpenStreetMap")
 		categories = append(categories, cat)
-		lons = append(lons, element.Lon)
-		lats = append(lats, element.Lat)
+
+		lons = append(lons, lon)
+		lats = append(lats, lat)
+
 		wikidataIDs = append(wikidataIDs, element.Tags["wikidata"])
 	}
 
