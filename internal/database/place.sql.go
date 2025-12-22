@@ -107,12 +107,15 @@ SELECT
 FROM place p
 LEFT JOIN place_image i ON p.id = i.place_id
 WHERE ST_DWithin(
-    p.location,
-    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326),
+    p.location::geography,
+    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326)::geography,
     $5::float
 )
 GROUP BY p.id
-ORDER BY p.id
+ORDER BY ST_Distance(
+    p.location::geography,
+    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326)::geography
+) ASC
 LIMIT $1 OFFSET $2
 `
 
