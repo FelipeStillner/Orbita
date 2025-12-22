@@ -38,7 +38,7 @@ func (c *Client) FetchImageURLs(wikidataID string) ([]string, error) {
 		return nil, fmt.Errorf("no image found for %s", wikidataID)
 	}
 
-	count := max(len(claims), 5)
+	count := min(len(claims), 5)
 
 	var urls []string
 	for i := range count {
