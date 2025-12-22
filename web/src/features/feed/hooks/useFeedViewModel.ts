@@ -2,12 +2,12 @@ import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGeolocation } from "../../../hooks/useGeolocation";
 import { fetchPlaces } from "../api/feedApi";
+import type { PlaceFeature } from "../types";
 
 export function useFeedViewModel() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
-  // 1. React Query Setup
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["feed", location?.lat, location?.lng],
       queryFn: ({ pageParam = 1 }) => {
@@ -19,12 +19,10 @@ export function useFeedViewModel() {
         if (lastPage.features.length < limit) return undefined;
         return allPages.length + 1;
       },
-      // Only fetch if we have location and no errors
       enabled: !!location && !locLoading && !locError,
       initialPageParam: 1,
     });
 
-  // 2. Intersection Observer Logic
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,22 +36,29 @@ export function useFeedViewModel() {
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  // 3. Data Transformation (Flatten Pages)
   const places = data?.pages.flatMap((page) => page.features) || [];
 
-  // 4. Determine Current View State
+  const handleOpenMap = (place: PlaceFeature) => {
+    const [lng, lat] = place.geometry.coordinates;
+
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+    window.open(url, "_blank");
+  };
+
   let viewState: "LOADING" | "ERROR" | "SUCCESS" = "LOADING";
 
   if (locError) {
     viewState = "ERROR";
-  } else if (!locLoading && location && !isLoading) {
+  } else if (!locLoading && location) {
     viewState = "SUCCESS";
   }
 
   return {
     viewState,
     places,
-    isFetchingNextPage,
     loadMoreRef,
+    isFetchingNextPage,
+    handleOpenMap,
   };
 }

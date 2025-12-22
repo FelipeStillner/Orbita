@@ -4,7 +4,7 @@ import FeedError from "./components/FeedError";
 import FeedList from "./components/FeedList";
 
 export default function FeedPage() {
-  const { viewState, places, loadMoreRef, isFetchingNextPage } =
+  const { viewState, places, loadMoreRef, isFetchingNextPage, handleOpenMap } =
     useFeedViewModel();
 
   switch (viewState) {
@@ -16,6 +16,7 @@ export default function FeedPage() {
           places={places}
           loadMoreRef={loadMoreRef}
           isFetchingNextPage={isFetchingNextPage}
+          onOpenMap={handleOpenMap}
         />
       );
     case "LOADING":
