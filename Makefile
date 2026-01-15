@@ -10,11 +10,11 @@ db-down:
 
 # Apply the schema
 db-schema:
-	cat internal/database/schema/*.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
+	cat database/schema/*.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
 
 # Insert the fake data
 db-seed:
-	cat internal/database/seeds/seed.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
+	cat database/seeds/basic_data.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
 
 # Reset everything (Stop -> Start -> Schema -> Seed)
 db-reset:
