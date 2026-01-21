@@ -42,7 +42,7 @@ dev-server:
 	go run cmd/server/main.go
 
 # Build everything
-build:
+build: generate
 	cd web && npm run build
 	go build -o bin/orbita cmd/server/main.go
 
