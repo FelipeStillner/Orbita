@@ -1,9 +1,9 @@
 package place
 
 import (
-	"github.com/FelipeStillner/Orbita/internal/adapter/osm"
-	"github.com/FelipeStillner/Orbita/internal/adapter/wikidata"
 	"github.com/FelipeStillner/Orbita/internal/database"
+	"github.com/FelipeStillner/Orbita/internal/provider/osm"
+	"github.com/FelipeStillner/Orbita/internal/provider/wikidata"
 	"golang.org/x/sync/singleflight"
 )
 
