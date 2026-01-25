@@ -1,4 +1,4 @@
-package storage
+package gcs
 
 import (
 	"context"
@@ -6,13 +6,13 @@ import (
 	"io"
 	"os"
 
-	"cloud.google.com/go/storage"
+	cloud_storage "cloud.google.com/go/storage"
 )
 
-func UploadToGCS(file io.Reader, filename string) (string, error) {
+func (c *storage) Save(file io.Reader, filename string) (string, error) {
 	ctx := context.Background()
 
-	client, err := storage.NewClient(ctx)
+	client, err := cloud_storage.NewClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to create client: %v", err)
 	}

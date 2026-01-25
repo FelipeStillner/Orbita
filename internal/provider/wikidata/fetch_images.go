@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (c *Client) FetchImageURLs(wikidataID string) ([]string, error) {
+func (c *placeEnricher) FetchImageURLs(wikidataID string) ([]string, error) {
 	url := fmt.Sprintf("https://www.wikidata.org/wiki/Special:EntityData/%s.json", wikidataID)
 
 	req, err := http.NewRequest("GET", url, nil)

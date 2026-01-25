@@ -6,10 +6,11 @@ import (
 	"sync"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
+	"github.com/FelipeStillner/Orbita/internal/service/place/types"
 	"github.com/google/uuid"
 )
 
-func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int32) ([]Result, error) {
+func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int32) ([]types.Result, error) {
 	key := fmt.Sprintf("list_%.3f,%.3f", lat, long)
 
 	_, err, _ := s.g.Do(key, func() (any, error) {
@@ -46,9 +47,9 @@ func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int
 		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
 
-	results := make([]Result, len(rows))
+	results := make([]types.Result, len(rows))
 	for i, row := range rows {
-		results[i] = Result{
+		results[i] = types.Result{
 			ID:      row.ID,
 			Name:    row.Name,
 			GeoJSON: row.Geojson,
@@ -60,12 +61,12 @@ func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int
 }
 
 func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
-	osmData, err := s.osm.FetchPlaces(lat, long, 5000)
+	places, err := s.osm.FetchPlaces(lat, long, 5000)
 	if err != nil {
 		return fmt.Errorf("OSM fetch error: %w", err)
 	}
 
-	if len(osmData.Elements) == 0 {
+	if len(places) == 0 {
 		return nil
 	}
 
@@ -78,39 +79,13 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 		wikidataIDs  []string
 	)
 
-	for _, element := range osmData.Elements {
-		name := element.Tags["name"]
-		if name == "" {
-			continue
-		}
-
-		lat := element.Lat
-		lon := element.Lon
-
-		if lat == 0 && lon == 0 && element.Center != nil {
-			lat = element.Center.Lat
-			lon = element.Center.Lon
-		}
-
-		if lat == 0 && lon == 0 {
-			continue
-		}
-
-		cat := "General"
-		if t, ok := element.Tags["tourism"]; ok {
-			cat = t
-		} else if a, ok := element.Tags["amenity"]; ok {
-			cat = a
-		}
-
-		names = append(names, name)
-		descriptions = append(descriptions, "Imported from OpenStreetMap")
-		categories = append(categories, cat)
-
-		lons = append(lons, lon)
-		lats = append(lats, lat)
-
-		wikidataIDs = append(wikidataIDs, element.Tags["wikidata"])
+	for _, p := range places {
+		names = append(names, p.Name)
+		descriptions = append(descriptions, p.Description)
+		categories = append(categories, p.Category)
+		lons = append(lons, p.Long)
+		lats = append(lats, p.Lat)
+		wikidataIDs = append(wikidataIDs, p.WikidataID)
 	}
 
 	placeIDs, err := s.queries.CreatePlacesBatch(ctx, database.CreatePlacesBatchParams{

@@ -1,16 +1,16 @@
-package osm
+package wikidata
 
 import (
 	"net/http"
 	"time"
 )
 
-type Client struct {
+type placeEnricher struct {
 	httpClient *http.Client
 }
 
-func NewClient() *Client {
-	return &Client{
+func NewProvider() *placeEnricher {
+	return &placeEnricher{
 		httpClient: &http.Client{Timeout: 30 * time.Second},
 	}
 }

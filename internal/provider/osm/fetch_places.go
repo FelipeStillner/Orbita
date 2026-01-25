@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+
+	"github.com/FelipeStillner/Orbita/internal/service/place/types"
 )
 
-func (c *Client) FetchPlaces(lat, long float64, radiusMeters int) (*OSMResponse, error) {
+func (c *placeProvider) FetchPlaces(lat, long float64, radiusMeters int) ([]types.Place, error) {
 	query := fmt.Sprintf(templateQuery, radiusMeters, lat, long)
 
 	resp, err := c.httpClient.PostForm(overpassURL, url.Values{"data": {query}})
@@ -15,12 +17,53 @@ func (c *Client) FetchPlaces(lat, long float64, radiusMeters int) (*OSMResponse,
 	}
 	defer resp.Body.Close()
 
-	var result OSMResponse
+	var result osmResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
-	return &result, nil
+	return toPlaces(&result), nil
+}
+
+func toPlaces(osmResp *osmResponse) []types.Place {
+	var places []types.Place
+
+	for _, e := range osmResp.Elements {
+		name := e.Tags["name"]
+		if name == "" {
+			continue
+		}
+
+		lat := e.Lat
+		lon := e.Lon
+
+		if lat == 0 && lon == 0 && e.Center != nil {
+			lat = e.Center.Lat
+			lon = e.Center.Lon
+		}
+
+		if lat == 0 && lon == 0 {
+			continue
+		}
+
+		category := "General"
+		if t, ok := e.Tags["tourism"]; ok {
+			category = t
+		} else if a, ok := e.Tags["amenity"]; ok {
+			category = a
+		}
+
+		places = append(places, types.Place{
+			Name:        name,
+			Description: "Imported from OpenStreetMap",
+			Category:    category,
+			Lat:         lat,
+			Long:        lon,
+			WikidataID:  e.Tags["wikidata"],
+		})
+	}
+
+	return places
 }
 
 const overpassURL = "https://overpass-api.de/api/interpreter"
