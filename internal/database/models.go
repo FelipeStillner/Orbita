@@ -37,3 +37,13 @@ type SearchedLocation struct {
 	RadiusKm  float64
 	CreatedAt time.Time
 }
+
+type User struct {
+	ID        uuid.UUID
+	GoogleID  string
+	Name      sql.NullString
+	Email     sql.NullString
+	Picture   sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

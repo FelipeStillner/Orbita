@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/FelipeStillner/Orbita/internal/api"
+	"github.com/FelipeStillner/Orbita/internal/auth"
 	"github.com/FelipeStillner/Orbita/internal/database"
 	"github.com/FelipeStillner/Orbita/web"
 )
@@ -37,6 +38,9 @@ func main() {
 
 	// sqlc
 	queries := database.New(db)
+
+	// auth
+	auth.SetQueries(queries)
 
 	// api
 	server := api.NewServer(queries)
