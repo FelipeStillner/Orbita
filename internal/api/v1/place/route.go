@@ -3,6 +3,7 @@ package place
 import (
 	"net/http"
 
+	"github.com/FelipeStillner/Orbita/internal/auth"
 	"github.com/FelipeStillner/Orbita/internal/service/place"
 )
 
@@ -15,5 +16,5 @@ func NewHandler(s *place.Service) *handler {
 }
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
-	router.HandleFunc("GET /api/places", h.handleList)
+	router.Handle("GET /api/places", auth.AuthMiddleware(http.HandlerFunc(h.handleList)))
 }
