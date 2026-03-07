@@ -1,0 +1,32 @@
+-- name: UpsertUserPlaceInteraction :exec
+INSERT INTO user_place_interactions (
+    user_id,
+    place_id,
+    rating,
+    visited,
+    saved,
+    times_recommended,
+    last_recommended_at,
+    last_interaction_at,
+    created_at,
+    updated_at
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    0,
+    NULL,
+    NOW(),
+    NOW(),
+    NOW()
+)
+ON CONFLICT (user_id, place_id) DO UPDATE
+SET rating = EXCLUDED.rating,
+    visited = EXCLUDED.visited,
+    saved = EXCLUDED.saved,
+    last_interaction_at = NOW(),
+    updated_at = NOW();
+

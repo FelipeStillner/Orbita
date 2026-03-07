@@ -47,3 +47,16 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type UserPlaceInteraction struct {
+	UserID            uuid.UUID
+	PlaceID           uuid.UUID
+	Rating            int32
+	Visited           bool
+	Saved             bool
+	TimesRecommended  int32
+	LastRecommendedAt sql.NullTime
+	LastInteractionAt sql.NullTime
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
