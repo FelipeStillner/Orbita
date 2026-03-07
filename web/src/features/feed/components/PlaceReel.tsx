@@ -1,188 +1,128 @@
 import type { PlaceProperties } from "../types";
+import { Button, Badge, Text } from "../../../components";
 
 interface Props {
   data: PlaceProperties;
   onOpenMap: () => void;
+  index?: number;
 }
 
-export default function PlaceReel({ data, onOpenMap }: Props) {
+function MapIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+      <line x1="8" y1="2" x2="8" y2="18" />
+      <line x1="16" y1="6" x2="16" y2="22" />
+    </svg>
+  );
+}
+
+export default function PlaceReel({ data, onOpenMap, index = 0 }: Props) {
   const images =
     data.images && data.images.length > 0
       ? data.images
       : [
-          {
-            url: "https://placehold.co/600x800/1a1a1a/FFF?text=No+Image",
-            description: "Placeholder",
-            is_primary: true,
-          },
-        ];
+        {
+          url: "https://placehold.co/600x800/1a1a1a/FFF?text=No+Image",
+          description: "Placeholder",
+          is_primary: true,
+        },
+      ];
 
   return (
     <div
+      className="h-dvh w-screen relative bg-black overflow-hidden"
       style={{
-        height: "100dvh",
-        width: "100vw",
-        position: "relative",
         scrollSnapAlign: "start",
         scrollSnapStop: "always",
-        backgroundColor: "#000",
-        overflow: "hidden",
       }}
     >
-      <div
-        className="no-scrollbar"
-        style={{
-          display: "flex",
-          overflowX: "auto",
-          overflowY: "hidden",
-          scrollSnapType: "x mandatory",
-          height: "100%",
-          width: "100%",
-        }}
-      >
-        {images.map((img, index) => (
+      {/* Horizontal Image Carousel */}
+      <div className="no-scrollbar flex overflow-x-auto overflow-y-hidden h-full w-full snap-x snap-mandatory">
+        {images.map((img, imgIndex) => (
           <div
-            key={index}
-            style={{
-              minWidth: "100vw",
-              height: "100%",
-              backgroundImage: `url(${img.url})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              scrollSnapAlign: "start",
-              position: "relative",
-            }}
+            key={imgIndex}
+            className="min-w-[100vw] h-full bg-cover bg-center snap-start relative transition-all duration-500"
+            style={{ backgroundImage: `url(${img.url})` }}
           >
-            {/* Gradient Overlay */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                width: "100%",
-                height: "60%",
-                background:
-                  "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)",
-              }}
-            />
+            {/* Simple gradient overlays - grayscale only */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent" />
 
+            {/* Image Counter with glass effect */}
             {images.length > 1 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "20px",
-                  right: "20px",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  color: "white",
-                  padding: "4px 10px",
-                  borderRadius: "12px",
-                  fontSize: "0.8rem",
-                  backdropFilter: "blur(4px)",
-                }}
-              >
-                {index + 1} / {images.length}
+              <div className="absolute top-8 right-8 animate-fade-slide-up" style={{ animationDelay: `${0.1 + imgIndex * 0.05}s` }}>
+                <Badge>
+                  {imgIndex + 1} / {images.length}
+                </Badge>
               </div>
             )}
           </div>
         ))}
       </div>
 
+      {/* Map Button */}
       <div
-        role="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenMap();
-        }}
-        style={{
-          position: "absolute",
-          right: "20px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          zIndex: 50,
-          width: "56px",
-          height: "56px",
-          borderRadius: "50%",
-          backgroundColor: "rgba(255, 255, 255, 0.15)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.3)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-          cursor: "pointer",
-        }}
+        className="absolute right-8 top-1/2 -translate-y-1/2 z-50 animate-fade-slide-up"
+        style={{ animationDelay: `${0.3 + index * 0.05}s` }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <Button
+          size="lg"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenMap();
+          }}
+          className="shadow-2xl"
         >
-          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-          <line x1="8" y1="2" x2="8" y2="18"></line>
-          <line x1="16" y1="6" x2="16" y2="22"></line>
-        </svg>
+          <MapIcon />
+        </Button>
       </div>
 
-      {/* --- INFO TEXT --- */}
+      {/* Place Info with glass panel */}
       <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          padding: "24px 90px 40px 20px",
-          zIndex: 10,
-          color: "white",
-          pointerEvents: "none",
-        }}
+        className="absolute bottom-0 left-0 right-0 z-10 p-8 pr-28 pb-12 animate-fade-slide-up"
+        style={{ animationDelay: `${0.2 + index * 0.05}s` }}
       >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "2rem",
-            fontWeight: 700,
-            textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-          }}
-        >
-          {data.name}
-        </h2>
-
         <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            backdropFilter: "blur(10px)",
-            padding: "4px 10px",
-            borderRadius: "6px",
-            fontSize: "0.85rem",
-            marginTop: "10px",
-            marginBottom: "12px",
-            fontWeight: 600,
-          }}
-        >
-          {data.category}
-        </div>
+          className="absolute inset-0 rounded-t-[3rem]"
+        />
 
-        <p
-          style={{
-            margin: 0,
-            opacity: 0.9,
-            fontSize: "1rem",
-            lineHeight: "1.4",
-            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-          }}
-        >
-          {data.description}
-        </p>
+        {/* Content */}
+        <div className="relative z-10 space-y-4">
+          <div className="space-y-2">
+            <Text
+              variant="h2"
+              className="text-3xl md:text-4xl font-bold leading-tight drop-shadow-2xl"
+            >
+              {data.name}
+            </Text>
+
+            <Badge>
+              {data.category}
+            </Badge>
+          </div>
+
+          <Text
+            variant="body"
+            className="leading-relaxed text-white/90 drop-shadow-lg max-w-2xl"
+          >
+            {data.description}
+          </Text>
+        </div>
       </div>
+
+      {/* Top gradient for depth */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10" />
     </div>
   );
 }

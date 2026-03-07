@@ -16,7 +16,7 @@ export default function FeedPage() {
           places={places}
           loadMoreRef={loadMoreRef}
           isFetchingNextPage={isFetchingNextPage}
-          onOpenMap={handleOpenMap} // <--- Pass it down
+          onOpenMap={handleOpenMap}
         />
       );
     case "LOADING":

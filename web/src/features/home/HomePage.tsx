@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Button, Page, Text } from "../../components";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -11,18 +12,31 @@ export default function HomePage() {
   };
 
   return (
-    <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#0a0a0a", color: "white" }}>
-      <button
+    <Page className="space-y-8">
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleLogout}
-        style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px", borderRadius: "20px", cursor: "pointer" }}
+        className="absolute top-8 right-8"
       >
         Logout
-      </button>
+      </Button>
 
-      <h1>🪐 Orbita</h1>
-      <button onClick={() => navigate("/feed")} style={{ marginTop: "20px", padding: "12px 24px", borderRadius: "50px", fontWeight: "bold" }}>
-        Start Exploring
-      </button>
-    </div>
+      <Text variant="h1">
+        Orbita
+      </Text>
+      <Text variant="body">
+        Your personal guide to discovering extraordinary places
+      </Text>
+
+      <Button
+        size="lg"
+        onClick={() => navigate("/feed")}
+        className="flex items-center gap-3"
+      >
+        <Text>Start Exploring</Text>
+        <Text className="text-xl">→</Text>
+      </Button>
+    </Page>
   );
 }
