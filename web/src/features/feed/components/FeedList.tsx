@@ -10,6 +10,10 @@ interface Props {
   loadMoreRef: RefObject<HTMLDivElement | null>;
   isFetchingNextPage: boolean;
   onOpenMap: (place: PlaceFeature) => void;
+  onInteraction: (
+    place: PlaceFeature,
+    action: "like" | "dislike" | "visited" | "save"
+  ) => void;
 }
 
 function BackIcon() {
@@ -34,6 +38,7 @@ export default function FeedList({
   loadMoreRef,
   isFetchingNextPage,
   onOpenMap,
+  onInteraction,
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -82,6 +87,7 @@ export default function FeedList({
           key={place.properties.id}
           data={place.properties}
           onOpenMap={() => onOpenMap(place)}
+          onInteraction={(action) => onInteraction(place, action)}
           index={index}
         />
       ))}

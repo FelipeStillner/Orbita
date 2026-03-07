@@ -5,14 +5,15 @@ interface Props {
   data: PlaceProperties;
   onOpenMap: () => void;
   index?: number;
+  onInteraction?: (action: "like" | "dislike" | "visited" | "save") => void;
 }
 
 function MapIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="26"
+      height="26"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -27,7 +28,90 @@ function MapIcon() {
   );
 }
 
-export default function PlaceReel({ data, onOpenMap, index = 0 }: Props) {
+function LikeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Thumbs up (Feather-inspired) */}
+      <path d="M7 22V10" />
+      <path d="M4 22V10a2 2 0 0 1 2-2h3.4c.4 0 .8-.24.96-.61L12.3 4.3A2 2 0 0 1 14.2 3H15a2 2 0 0 1 2 2v3h2.28a2 2 0 0 1 1.98 2.32l-1 7A2 2 0 0 1 18.28 19H10" />
+    </svg>
+  );
+}
+
+function DislikeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Thumbs down (Feather-inspired) */}
+      <path d="M17 2v12" />
+      <path d="M20 2v12a2 2 0 0 1-2 2h-3.4a1.2 1.2 0 0 0-.96.61L11.7 21.7A2 2 0 0 1 9.8 23H9a2 2 0 0 1-2-2v-3H4.72a2 2 0 0 1-1.98-2.32l1-7A2 2 0 0 1 5.72 7H14" />
+    </svg>
+  );
+}
+
+function VisitedIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Visited: check inside circle */}
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9 12.5 11 14.5 15 10.5" />
+    </svg>
+  );
+}
+
+function SaveIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 4h14v16l-7-4-7 4z" />
+    </svg>
+  );
+}
+
+export default function PlaceReel({
+  data,
+  onOpenMap,
+  index = 0,
+  onInteraction,
+}: Props) {
   const images =
     data.images && data.images.length > 0
       ? data.images
@@ -71,21 +155,74 @@ export default function PlaceReel({ data, onOpenMap, index = 0 }: Props) {
         ))}
       </div>
 
-      {/* Map Button */}
-      <div
-        className="absolute right-8 top-1/2 -translate-y-1/2 z-50 animate-fade-slide-up"
+      {/* Map & Interaction Buttons */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-end gap-3 animate-fade-slide-up"
         style={{ animationDelay: `${0.3 + index * 0.05}s` }}
       >
-        <Button
-          size="lg"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenMap();
-          }}
-          className="shadow-2xl"
-        >
-          <MapIcon />
-        </Button>
+        {/* Interaction buttons stack (including map) */}
+        <div className="flex flex-col gap-2 items-end">
+          {onInteraction && (
+            <>
+              <Button
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction("like");
+                }}
+              >
+                <LikeIcon />
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction("dislike");
+                }}
+              >
+                <DislikeIcon />
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction("visited");
+                }}
+              >
+                <VisitedIcon />
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction("save");
+                }}
+              >
+                <SaveIcon />
+              </Button>
+            </>
+          )}
+
+          {/* Map button, same style as others */}
+          <Button
+            size="sm"
+            variant="default"
+            className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMap();
+            }}
+          >
+            <MapIcon />
+          </Button>
+        </div>
       </div>
 
       {/* Place Info with glass panel */}

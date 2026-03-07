@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGeolocation } from "../../../hooks/useGeolocation";
-import { fetchPlaces } from "../api/feedApi";
+import { fetchPlaces, sendInteraction } from "../api/feedApi";
 import type { FeatureCollection, PlaceFeature } from "../types";
 
 export function useFeedViewModel() {
@@ -46,6 +46,28 @@ export function useFeedViewModel() {
     window.open(url, "_blank");
   };
 
+  const handleInteraction = async (
+    place: PlaceFeature,
+    action: "like" | "dislike" | "visited" | "save"
+  ) => {
+    const id = place.properties.id;
+
+    switch (action) {
+      case "like":
+        await sendInteraction(id, { liked: true, disliked: false });
+        break;
+      case "dislike":
+        await sendInteraction(id, { disliked: true, liked: false });
+        break;
+      case "visited":
+        await sendInteraction(id, { visited: true });
+        break;
+      case "save":
+        await sendInteraction(id, { saved: true });
+        break;
+    }
+  };
+
   let viewState: "LOADING" | "ERROR" | "SUCCESS" = "LOADING";
 
   if (locError) {
@@ -60,5 +82,6 @@ export function useFeedViewModel() {
     loadMoreRef,
     isFetchingNextPage,
     handleOpenMap,
+    handleInteraction,
   };
 }
