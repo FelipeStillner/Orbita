@@ -11,6 +11,20 @@ import (
 	"github.com/google/uuid"
 )
 
+type Collection struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type CollectionPlace struct {
+	CollectionID uuid.UUID
+	PlaceID      uuid.UUID
+	CreatedAt    time.Time
+}
+
 type Place struct {
 	ID          uuid.UUID
 	Name        string

@@ -61,6 +61,7 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 				"description": p.Description,
 				"category":    p.Category,
 				"liked":       p.Liked,
+				"collections": p.Collections,
 			},
 		})
 	}

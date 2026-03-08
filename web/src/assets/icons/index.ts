@@ -6,3 +6,5 @@ export * from './SaveIcon';
 export * from './BackIcon';
 export * from './SavedIcon';
 export * from './LikedIcon';
+export * from './PlusIcon';
+export * from './CheckIcon';

@@ -29,6 +29,11 @@ type ImageUpload struct {
 	Data     io.Reader
 }
 
+type CollectionItem struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
 type Result struct {
 	ID          uuid.UUID
 	Name        string
@@ -37,4 +42,5 @@ type Result struct {
 	Description string
 	Category    string
 	Liked       bool
+	Collections []CollectionItem
 }

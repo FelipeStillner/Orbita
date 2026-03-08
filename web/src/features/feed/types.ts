@@ -4,6 +4,11 @@ export interface Image {
   is_primary: boolean;
 }
 
+export interface PlaceCollection {
+  id: string;
+  name: string;
+}
+
 export interface PlaceProperties {
   id: string;
   name: string;
@@ -11,6 +16,7 @@ export interface PlaceProperties {
   description: string;
   images: Image[] | null; // Can be null if no images
   liked: boolean;
+  collections?: PlaceCollection[];
 }
 
 export interface PlaceFeature {

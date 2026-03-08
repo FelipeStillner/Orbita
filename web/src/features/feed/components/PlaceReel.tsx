@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import type { PlaceProperties } from "../types";
 import { Button, Badge, Text } from "../../../components";
-import { LikeIcon, LikedIcon, HideIcon, SaveIcon, MapIcon } from "../../../assets/icons";
+import { LikeIcon, LikedIcon, HideIcon, SaveIcon, SavedIcon, MapIcon } from "../../../assets/icons";
 
 interface Props {
   data: PlaceProperties;
   onOpenMap: () => void;
   index?: number;
   onInteraction?: (action: "like" | "hide") => void;
+  onSaveClick?: () => void;
 }
 
 export default function PlaceReel({
@@ -15,7 +16,9 @@ export default function PlaceReel({
   onOpenMap,
   index = 0,
   onInteraction,
+  onSaveClick,
 }: Props) {
+  const isSaved = (data.collections?.length ?? 0) > 0;
   const [isLiked, setIsLiked] = useState(data.liked);
   useEffect(() => {
     setIsLiked(data.liked);
@@ -82,15 +85,15 @@ export default function PlaceReel({
                 {isLiked ? <LikedIcon /> : <LikeIcon />}
               </Button>
               <Button
-                disabled
                 size="sm"
                 variant="default"
                 className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
                 onClick={(e) => {
                   e.stopPropagation();
+                  onSaveClick?.();
                 }}
               >
-                <SaveIcon />
+                {isSaved ? <SavedIcon /> : <SaveIcon />}
               </Button>
               <Button
                 size="sm"

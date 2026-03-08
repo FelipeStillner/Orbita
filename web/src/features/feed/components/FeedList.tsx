@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PlaceReel from "./PlaceReel";
+import SaveToCollectionDrawer from "./SaveToCollectionDrawer";
 import type { PlaceFeature } from "../types";
 import type { RefObject } from "react";
 import { Text, Button } from "../../../components";
@@ -26,6 +27,7 @@ export default function FeedList({
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
+  const [saveDrawerPlace, setSaveDrawerPlace] = useState<PlaceFeature | null>(null);
 
   useLayoutEffect(() => {
     if (listRef.current) {
@@ -72,9 +74,16 @@ export default function FeedList({
           data={place.properties}
           onOpenMap={() => onOpenMap(place)}
           onInteraction={(action) => onInteraction(place, action)}
+          onSaveClick={() => setSaveDrawerPlace(place)}
           index={index}
         />
       ))}
+
+      <SaveToCollectionDrawer
+        key={saveDrawerPlace?.properties.id ?? "closed"}
+        place={saveDrawerPlace}
+        onClose={() => setSaveDrawerPlace(null)}
+      />
 
       <div ref={loadMoreRef} className="h-20 w-full flex items-center justify-center">
         {isFetchingNextPage && (

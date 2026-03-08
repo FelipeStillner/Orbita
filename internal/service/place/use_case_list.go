@@ -48,8 +48,35 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
 
+	placeIDs := make([]uuid.UUID, len(rows))
+	for i, row := range rows {
+		placeIDs[i] = row.ID
+	}
+
+	var collectionsByPlace map[uuid.UUID][]types.CollectionItem
+	if len(placeIDs) > 0 {
+		collectionRows, err := s.queries.ListCollectionItemsByPlaceIDs(ctx, database.ListCollectionItemsByPlaceIDsParams{
+			UserID:   userId,
+			PlaceIds: placeIDs,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list collection items: %w", err)
+		}
+		collectionsByPlace = make(map[uuid.UUID][]types.CollectionItem)
+		for _, r := range collectionRows {
+			collectionsByPlace[r.PlaceID] = append(collectionsByPlace[r.PlaceID], types.CollectionItem{
+				ID:   r.CollectionID,
+				Name: r.Name,
+			})
+		}
+	}
+
 	results := make([]types.Result, len(rows))
 	for i, row := range rows {
+		var collections []types.CollectionItem
+		if collectionsByPlace != nil {
+			collections = collectionsByPlace[row.ID]
+		}
 		results[i] = types.Result{
 			ID:          row.ID,
 			Name:        row.Name,
@@ -58,6 +85,7 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 			Description: row.Description.String,
 			Category:    row.Category,
 			Liked:       row.Liked,
+			Collections: collections,
 		}
 	}
 
