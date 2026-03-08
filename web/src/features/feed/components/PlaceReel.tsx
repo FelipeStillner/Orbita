@@ -105,18 +105,6 @@ export default function PlaceReel({
               </Button>
             </>
           )}
-
-          <Button
-            size="sm"
-            variant="default"
-            className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenMap();
-            }}
-          >
-            <MapIcon />
-          </Button>
         </div>
       </div>
 
@@ -130,7 +118,21 @@ export default function PlaceReel({
             <Text variant="h2" className="text-3xl md:text-4xl font-bold leading-tight drop-shadow-2xl">
               {data.name}
             </Text>
-            <Badge>{data.category}</Badge>
+
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenMap();
+                }}
+              >
+                <MapIcon />
+              </Button>
+              <Badge>{data.category}</Badge>
+            </div>
+
           </div>
           <Text variant="body" className="leading-relaxed text-white/90 drop-shadow-lg max-w-2xl">
             {data.description}
@@ -140,6 +142,6 @@ export default function PlaceReel({
 
       {/* Top gradient for depth */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10" />
-    </div>
+    </div >
   );
 }
