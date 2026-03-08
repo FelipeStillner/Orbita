@@ -10,6 +10,7 @@ export interface PlaceProperties {
   category: string;
   description: string;
   images: Image[] | null; // Can be null if no images
+  liked: boolean;
 }
 
 export interface PlaceFeature {

@@ -4,3 +4,5 @@ export * from './HideIcon';
 export * from './ReviewIcon';
 export * from './SaveIcon';
 export * from './BackIcon';
+export * from './SavedIcon';
+export * from './LikedIcon';

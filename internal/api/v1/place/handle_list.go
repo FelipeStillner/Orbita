@@ -4,9 +4,26 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"github.com/FelipeStillner/Orbita/internal/auth"
+	"github.com/google/uuid"
 )
 
 func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	uVal := ctx.Value("user")
+	u, ok := uVal.(*auth.User)
+	if !ok || u == nil {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := uuid.Parse(u.ID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return
+	}
+
 	lat, _ := strconv.ParseFloat(r.URL.Query().Get("lat"), 64)
 	long, _ := strconv.ParseFloat(r.URL.Query().Get("long"), 64)
 
@@ -26,7 +43,7 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 
 	offset := (page - 1) * limit
 
-	places, err := h.service.List(r.Context(), lat, long, int32(limit), int32(offset))
+	places, err := h.service.List(ctx, userID, lat, long, int32(limit), int32(offset))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -38,9 +55,12 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 			"type":     "Feature",
 			"geometry": p.GeoJSON,
 			"properties": map[string]any{
-				"id":     p.ID,
-				"name":   p.Name,
-				"images": p.Images,
+				"id":          p.ID,
+				"name":        p.Name,
+				"images":      p.Images,
+				"description": p.Description,
+				"category":    p.Category,
+				"liked":       p.Liked,
 			},
 		})
 	}

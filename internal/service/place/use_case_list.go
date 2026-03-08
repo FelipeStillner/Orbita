@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int32) ([]types.Result, error) {
+func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64, limit, offset int32) ([]types.Result, error) {
 	key := fmt.Sprintf("list_%.3f,%.3f", lat, long)
 
 	_, err, _ := s.g.Do(key, func() (any, error) {
@@ -42,6 +42,7 @@ func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int
 		RadiusMeters: 3000,
 		Limit:        limit,
 		Offset:       offset,
+		UserID:       userId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query database: %w", err)
@@ -50,10 +51,13 @@ func (s *Service) List(ctx context.Context, lat, long float64, limit, offset int
 	results := make([]types.Result, len(rows))
 	for i, row := range rows {
 		results[i] = types.Result{
-			ID:      row.ID,
-			Name:    row.Name,
-			GeoJSON: row.Geojson,
-			Images:  row.Images,
+			ID:          row.ID,
+			Name:        row.Name,
+			GeoJSON:     row.Geojson,
+			Images:      row.Images,
+			Description: row.Description.String,
+			Category:    row.Category,
+			Liked:       row.Liked,
 		}
 	}
 

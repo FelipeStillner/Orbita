@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useGeolocation } from "../../../hooks/useGeolocation";
 import { fetchPlaces, sendInteraction } from "../api";
 import type { FeatureCollection, PlaceFeature } from "../types";
 
 export function useFeedViewModel() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
+
+  const queryClient = useQueryClient();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<FeatureCollection>({
@@ -40,9 +42,7 @@ export function useFeedViewModel() {
 
   const handleOpenMap = (place: PlaceFeature) => {
     const [lng, lat] = place.geometry.coordinates;
-
     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-
     window.open(url, "_blank");
   };
 
@@ -54,9 +54,27 @@ export function useFeedViewModel() {
 
     switch (action) {
       case "like":
-        await sendInteraction(id, { liked: true, hidden: false });
+        await sendInteraction(id, { liked: !place.properties.liked, hidden: false });
         break;
       case "hide":
+        queryClient.setQueryData(
+          ["feed", location?.lat, location?.lng],
+          (oldData: { pages: FeatureCollection[]; pageParams: unknown[] } | undefined) => {
+            if (!oldData) return oldData;
+
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                features: page.features.filter(
+                  (p: PlaceFeature) => p.properties.id !== id
+                ),
+              })),
+            };
+          }
+        );
+
+        // Fire the API request in the background
         await sendInteraction(id, { hidden: true, liked: false });
         break;
     }

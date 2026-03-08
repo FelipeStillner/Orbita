@@ -5,6 +5,7 @@ SELECT
     p.category,
     p.description,
     ST_AsGeoJSON(p.location)::json AS geojson,
+    COALESCE(upi.liked, FALSE) AS liked,
     COALESCE(
         json_agg(
             json_build_object(
@@ -17,12 +18,13 @@ SELECT
     )::json AS images
 FROM place p
 LEFT JOIN place_image i ON p.id = i.place_id
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = @user_id::uuid
 WHERE ST_DWithin(
     p.location::geography,
     ST_SetSRID(ST_MakePoint(@lon::float, @lat::float), 4326)::geography,
     @radius_meters::float
-)
-GROUP BY p.id
+) AND COALESCE(upi.hidden, FALSE) = FALSE
+GROUP BY p.id, upi.liked, upi.hidden
 ORDER BY ST_Distance(
     p.location::geography,
     ST_SetSRID(ST_MakePoint(@lon::float, @lat::float), 4326)::geography

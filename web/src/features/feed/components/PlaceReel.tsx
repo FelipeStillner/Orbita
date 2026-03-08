@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import type { PlaceProperties } from "../types";
 import { Button, Badge, Text } from "../../../components";
-import { LikeIcon, HideIcon, ReviewIcon, SaveIcon, MapIcon } from "../../../assets/icons";
+import { LikeIcon, LikedIcon, HideIcon, SaveIcon, MapIcon } from "../../../assets/icons";
 
 interface Props {
   data: PlaceProperties;
@@ -15,6 +16,11 @@ export default function PlaceReel({
   index = 0,
   onInteraction,
 }: Props) {
+  const [isLiked, setIsLiked] = useState(data.liked);
+  useEffect(() => {
+    setIsLiked(data.liked);
+  }, [data.liked]);
+
   const images =
     data.images && data.images.length > 0
       ? data.images
@@ -42,11 +48,9 @@ export default function PlaceReel({
             className="min-w-[100vw] h-full bg-cover bg-center snap-start relative transition-all duration-500"
             style={{ backgroundImage: `url(${img.url})` }}
           >
-            {/* Simple gradient overlays - grayscale only */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent" />
 
-            {/* Image Counter with glass effect */}
             {images.length > 1 && (
               <div className="absolute top-8 right-8 animate-fade-slide-up" style={{ animationDelay: `${0.1 + imgIndex * 0.05}s` }}>
                 <Badge>
@@ -62,7 +66,6 @@ export default function PlaceReel({
       <div className="absolute right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-end gap-3 animate-fade-slide-up"
         style={{ animationDelay: `${0.3 + index * 0.05}s` }}
       >
-        {/* Interaction buttons stack (including map) */}
         <div className="flex flex-col gap-2 items-end">
           {onInteraction && (
             <>
@@ -72,10 +75,11 @@ export default function PlaceReel({
                 className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
                 onClick={(e) => {
                   e.stopPropagation();
+                  setIsLiked(!isLiked);
                   onInteraction("like");
                 }}
               >
-                <LikeIcon />
+                {isLiked ? <LikedIcon /> : <LikeIcon />}
               </Button>
               <Button
                 disabled
@@ -116,34 +120,19 @@ export default function PlaceReel({
         </div>
       </div>
 
-      {/* Place Info with glass panel */}
       <div
         className="absolute bottom-0 left-0 right-0 z-10 p-8 pr-28 pb-12 animate-fade-slide-up"
         style={{ animationDelay: `${0.2 + index * 0.05}s` }}
       >
-        <div
-          className="absolute inset-0 rounded-t-[3rem]"
-        />
-
-        {/* Content */}
+        <div className="absolute inset-0 rounded-t-[3rem]" />
         <div className="relative z-10 space-y-4">
           <div className="space-y-2">
-            <Text
-              variant="h2"
-              className="text-3xl md:text-4xl font-bold leading-tight drop-shadow-2xl"
-            >
+            <Text variant="h2" className="text-3xl md:text-4xl font-bold leading-tight drop-shadow-2xl">
               {data.name}
             </Text>
-
-            <Badge>
-              {data.category}
-            </Badge>
+            <Badge>{data.category}</Badge>
           </div>
-
-          <Text
-            variant="body"
-            className="leading-relaxed text-white/90 drop-shadow-lg max-w-2xl"
-          >
+          <Text variant="body" className="leading-relaxed text-white/90 drop-shadow-lg max-w-2xl">
             {data.description}
           </Text>
         </div>

@@ -94,6 +94,7 @@ SELECT
     p.category,
     p.description,
     ST_AsGeoJSON(p.location)::json AS geojson,
+    COALESCE(upi.liked, FALSE) AS liked,
     COALESCE(
         json_agg(
             json_build_object(
@@ -106,15 +107,16 @@ SELECT
     )::json AS images
 FROM place p
 LEFT JOIN place_image i ON p.id = i.place_id
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
 WHERE ST_DWithin(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326)::geography,
-    $5::float
-)
-GROUP BY p.id
+    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography,
+    $6::float
+) AND COALESCE(upi.hidden, FALSE) = FALSE
+GROUP BY p.id, upi.liked, upi.hidden
 ORDER BY ST_Distance(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($3::float, $4::float), 4326)::geography
+    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography
 ) ASC
 LIMIT $1 OFFSET $2
 `
@@ -122,6 +124,7 @@ LIMIT $1 OFFSET $2
 type ListPlacesParams struct {
 	Limit        int32
 	Offset       int32
+	UserID       uuid.UUID
 	Lon          float64
 	Lat          float64
 	RadiusMeters float64
@@ -133,6 +136,7 @@ type ListPlacesRow struct {
 	Category    string
 	Description sql.NullString
 	Geojson     json.RawMessage
+	Liked       bool
 	Images      json.RawMessage
 }
 
@@ -140,6 +144,7 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 	rows, err := q.db.QueryContext(ctx, listPlaces,
 		arg.Limit,
 		arg.Offset,
+		arg.UserID,
 		arg.Lon,
 		arg.Lat,
 		arg.RadiusMeters,
@@ -157,6 +162,7 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 			&i.Category,
 			&i.Description,
 			&i.Geojson,
+			&i.Liked,
 			&i.Images,
 		); err != nil {
 			return nil, err

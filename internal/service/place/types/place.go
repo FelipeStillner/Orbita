@@ -30,8 +30,11 @@ type ImageUpload struct {
 }
 
 type Result struct {
-	ID      uuid.UUID
-	Name    string
-	GeoJSON any
-	Images  any
+	ID          uuid.UUID
+	Name        string
+	GeoJSON     any
+	Images      any
+	Description string
+	Category    string
+	Liked       bool
 }
