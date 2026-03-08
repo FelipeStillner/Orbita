@@ -21,9 +21,3 @@ CREATE TABLE IF NOT EXISTS place_image (
     is_primary  BOOLEAN DEFAULT FALSE,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
--- Indexes
--- 1. Spatial Index
-CREATE INDEX IF NOT EXISTS idx_place_location ON place USING GIST (location);
--- 2. Index for place_images table
-CREATE INDEX IF NOT EXISTS idx_place_image_place_id ON place_image(place_id);

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useGeolocation } from "../../../hooks/useGeolocation";
-import { fetchPlaces, sendInteraction } from "../api/feedApi";
+import { fetchPlaces, sendInteraction } from "../api";
 import type { FeatureCollection, PlaceFeature } from "../types";
 
 export function useFeedViewModel() {
@@ -48,22 +48,16 @@ export function useFeedViewModel() {
 
   const handleInteraction = async (
     place: PlaceFeature,
-    action: "like" | "dislike" | "visited" | "save"
+    action: "like" | "hide"
   ) => {
     const id = place.properties.id;
 
     switch (action) {
       case "like":
-        await sendInteraction(id, { liked: true, disliked: false });
+        await sendInteraction(id, { liked: true, hidden: false });
         break;
-      case "dislike":
-        await sendInteraction(id, { disliked: true, liked: false });
-        break;
-      case "visited":
-        await sendInteraction(id, { visited: true });
-        break;
-      case "save":
-        await sendInteraction(id, { saved: true });
+      case "hide":
+        await sendInteraction(id, { hidden: true, liked: false });
         break;
     }
   };

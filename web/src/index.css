@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Pure grayscale palette - Apple minimalism */
   --color-dark: #000000;
   --color-dark-50: #0a0a0a;
   --color-dark-100: #1c1c1e;
@@ -10,12 +9,12 @@
   --color-dark-400: #48484a;
   --color-dark-500: #636366;
   --color-dark-600: #8e8e93;
-  
+
   /* Glass transparency levels */
   --color-glass-light: rgba(255, 255, 255, 0.05);
   --color-glass-medium: rgba(255, 255, 255, 0.1);
   --color-glass-strong: rgba(255, 255, 255, 0.15);
-  
+
   /* Animations */
   --animate-spring-1: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --animate-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -144,9 +143,19 @@
 
   /* Scale spring animation */
   @keyframes scale-spring {
-    0% { transform: scale(0.95); opacity: 0; }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+
+    50% {
+      transform: scale(1.02);
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .animate-scale-spring {
@@ -155,8 +164,15 @@
 
   /* Fade slide up */
   @keyframes fade-slide-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .animate-fade-slide-up {
@@ -165,8 +181,15 @@
 
   /* Subtle pulse - minimal */
   @keyframes pulse-subtle {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
   }
 
   .animate-pulse-subtle {

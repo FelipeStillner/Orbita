@@ -2,6 +2,7 @@ import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Page, Text } from "../../components";
+import { Button, Badge } from "../../components";
 
 export default function AuthPage() {
   const navigate = useNavigate();

@@ -4,6 +4,7 @@ import PlaceReel from "./PlaceReel";
 import type { PlaceFeature } from "../types";
 import type { RefObject } from "react";
 import { Text, Button } from "../../../components";
+import { BackIcon } from "../../../assets/icons";
 
 interface Props {
   places: PlaceFeature[];
@@ -12,25 +13,8 @@ interface Props {
   onOpenMap: (place: PlaceFeature) => void;
   onInteraction: (
     place: PlaceFeature,
-    action: "like" | "dislike" | "visited" | "save"
+    action: "like" | "hide"
   ) => void;
-}
-
-function BackIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 12H5M12 19l-7-7 7-7" />
-    </svg>
-  );
 }
 
 export default function FeedList({

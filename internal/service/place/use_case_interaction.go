@@ -7,18 +7,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) SetInteraction(ctx context.Context, userID, placeID uuid.UUID, rating int32, visited, saved bool) error {
-	if rating > 1 {
-		rating = 1
-	} else if rating < -1 {
-		rating = -1
-	}
+func (s *Service) SetInteraction(ctx context.Context, userID, placeID uuid.UUID, liked, hidden bool) error {
 
 	return s.queries.UpsertUserPlaceInteraction(ctx, database.UpsertUserPlaceInteractionParams{
 		UserID:  userID,
 		PlaceID: placeID,
-		Rating:  rating,
-		Visited: visited,
-		Saved:   saved,
+		Liked:   liked,
+		Hidden:  hidden,
 	})
 }

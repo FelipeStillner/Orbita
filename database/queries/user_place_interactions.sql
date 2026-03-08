@@ -2,11 +2,8 @@
 INSERT INTO user_place_interactions (
     user_id,
     place_id,
-    rating,
-    visited,
-    saved,
-    times_recommended,
-    last_recommended_at,
+    liked,
+    hidden,
     last_interaction_at,
     created_at,
     updated_at
@@ -17,16 +14,12 @@ VALUES (
     $3,
     $4,
     $5,
-    0,
-    NULL,
-    NOW(),
     NOW(),
     NOW()
 )
 ON CONFLICT (user_id, place_id) DO UPDATE
-SET rating = EXCLUDED.rating,
-    visited = EXCLUDED.visited,
-    saved = EXCLUDED.saved,
+SET liked = EXCLUDED.liked,
+    hidden = EXCLUDED.hidden,
     last_interaction_at = NOW(),
     updated_at = NOW();
 

@@ -16,6 +16,7 @@ export default function HomePage() {
       <Button
         variant="ghost"
         size="sm"
+        rounded={false}
         onClick={handleLogout}
         className="absolute top-8 right-8"
       >
@@ -32,10 +33,9 @@ export default function HomePage() {
       <Button
         size="lg"
         onClick={() => navigate("/feed")}
-        className="flex items-center gap-3"
+        rounded={false}
       >
-        <Text>Start Exploring</Text>
-        <Text className="text-xl">→</Text>
+        Start Exploring
       </Button>
     </Page>
   );

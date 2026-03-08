@@ -1,109 +1,12 @@
 import type { PlaceProperties } from "../types";
 import { Button, Badge, Text } from "../../../components";
+import { LikeIcon, HideIcon, ReviewIcon, SaveIcon, MapIcon } from "../../../assets/icons";
 
 interface Props {
   data: PlaceProperties;
   onOpenMap: () => void;
   index?: number;
-  onInteraction?: (action: "like" | "dislike" | "visited" | "save") => void;
-}
-
-function MapIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="26"
-      height="26"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-      <line x1="8" y1="2" x2="8" y2="18" />
-      <line x1="16" y1="6" x2="16" y2="22" />
-    </svg>
-  );
-}
-
-function LikeIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* Thumbs up (Feather-inspired) */}
-      <path d="M7 22V10" />
-      <path d="M4 22V10a2 2 0 0 1 2-2h3.4c.4 0 .8-.24.96-.61L12.3 4.3A2 2 0 0 1 14.2 3H15a2 2 0 0 1 2 2v3h2.28a2 2 0 0 1 1.98 2.32l-1 7A2 2 0 0 1 18.28 19H10" />
-    </svg>
-  );
-}
-
-function DislikeIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* Thumbs down (Feather-inspired) */}
-      <path d="M17 2v12" />
-      <path d="M20 2v12a2 2 0 0 1-2 2h-3.4a1.2 1.2 0 0 0-.96.61L11.7 21.7A2 2 0 0 1 9.8 23H9a2 2 0 0 1-2-2v-3H4.72a2 2 0 0 1-1.98-2.32l1-7A2 2 0 0 1 5.72 7H14" />
-    </svg>
-  );
-}
-
-function VisitedIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* Visited: check inside circle */}
-      <circle cx="12" cy="12" r="9" />
-      <path d="M9 12.5 11 14.5 15 10.5" />
-    </svg>
-  );
-}
-
-function SaveIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 4h14v16l-7-4-7 4z" />
-    </svg>
-  );
+  onInteraction?: (action: "like" | "hide") => void;
 }
 
 export default function PlaceReel({
@@ -175,42 +78,30 @@ export default function PlaceReel({
                 <LikeIcon />
               </Button>
               <Button
+                disabled
                 size="sm"
                 variant="default"
                 className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onInteraction("dislike");
-                }}
-              >
-                <DislikeIcon />
-              </Button>
-              <Button
-                size="sm"
-                variant="default"
-                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onInteraction("visited");
-                }}
-              >
-                <VisitedIcon />
-              </Button>
-              <Button
-                size="sm"
-                variant="default"
-                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onInteraction("save");
                 }}
               >
                 <SaveIcon />
               </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center rounded-full w-14 h-14 shadow-2xl text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction("hide");
+                }}
+              >
+                <HideIcon />
+              </Button>
             </>
           )}
 
-          {/* Map button, same style as others */}
           <Button
             size="sm"
             variant="default"

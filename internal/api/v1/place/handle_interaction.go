@@ -9,10 +9,8 @@ import (
 )
 
 type interactionRequest struct {
-	Liked    *bool `json:"liked,omitempty"`
-	Disliked *bool `json:"disliked,omitempty"`
-	Visited  *bool `json:"visited,omitempty"`
-	Saved    *bool `json:"saved,omitempty"`
+	Liked  *bool `json:"liked,omitempty"`
+	Hidden *bool `json:"hidden,omitempty"`
 }
 
 func (h *handler) handleInteraction(w http.ResponseWriter, r *http.Request) {
@@ -42,16 +40,7 @@ func (h *handler) handleInteraction(w http.ResponseWriter, r *http.Request) {
 
 	// Default missing fields to neutral / false.
 	liked := req.Liked != nil && *req.Liked
-	disliked := req.Disliked != nil && *req.Disliked
-	visited := req.Visited != nil && *req.Visited
-	saved := req.Saved != nil && *req.Saved
-
-	var rating int32 = 0
-	if liked {
-		rating = 1
-	} else if disliked {
-		rating = -1
-	}
+	hidden := req.Hidden != nil && *req.Hidden
 
 	userID, err := uuid.Parse(u.ID)
 	if err != nil {
@@ -59,11 +48,10 @@ func (h *handler) handleInteraction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.SetInteraction(ctx, userID, placeID, rating, visited, saved); err != nil {
+	if err := h.service.SetInteraction(ctx, userID, placeID, liked, hidden); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
-

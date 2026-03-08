@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -15,11 +16,8 @@ const upsertUserPlaceInteraction = `-- name: UpsertUserPlaceInteraction :exec
 INSERT INTO user_place_interactions (
     user_id,
     place_id,
-    rating,
-    visited,
-    saved,
-    times_recommended,
-    last_recommended_at,
+    liked,
+    hidden,
     last_interaction_at,
     created_at,
     updated_at
@@ -30,35 +28,31 @@ VALUES (
     $3,
     $4,
     $5,
-    0,
-    NULL,
-    NOW(),
     NOW(),
     NOW()
 )
 ON CONFLICT (user_id, place_id) DO UPDATE
-SET rating = EXCLUDED.rating,
-    visited = EXCLUDED.visited,
-    saved = EXCLUDED.saved,
+SET liked = EXCLUDED.liked,
+    hidden = EXCLUDED.hidden,
     last_interaction_at = NOW(),
     updated_at = NOW()
 `
 
 type UpsertUserPlaceInteractionParams struct {
-	UserID  uuid.UUID
-	PlaceID uuid.UUID
-	Rating  int32
-	Visited bool
-	Saved   bool
+	UserID            uuid.UUID
+	PlaceID           uuid.UUID
+	Liked             bool
+	Hidden            bool
+	LastInteractionAt sql.NullTime
 }
 
 func (q *Queries) UpsertUserPlaceInteraction(ctx context.Context, arg UpsertUserPlaceInteractionParams) error {
 	_, err := q.db.ExecContext(ctx, upsertUserPlaceInteraction,
 		arg.UserID,
 		arg.PlaceID,
-		arg.Rating,
-		arg.Visited,
-		arg.Saved,
+		arg.Liked,
+		arg.Hidden,
+		arg.LastInteractionAt,
 	)
 	return err
 }

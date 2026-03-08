@@ -51,11 +51,8 @@ type User struct {
 type UserPlaceInteraction struct {
 	UserID            uuid.UUID
 	PlaceID           uuid.UUID
-	Rating            int32
-	Visited           bool
-	Saved             bool
-	TimesRecommended  int32
-	LastRecommendedAt sql.NullTime
+	Liked             bool
+	Hidden            bool
 	LastInteractionAt sql.NullTime
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
