@@ -1,16 +1,24 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Page, Text } from "../../components";
+import { loginWithGoogleToken } from "./api/login";
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSuccess = (res: CredentialResponse) => {
-    if (res.credential) {
-      login(res.credential);
+  const handleSuccess = async (res: CredentialResponse) => {
+    if (!res.credential) return;
+    setError(null);
+    try {
+      const jwt = await loginWithGoogleToken(res.credential);
+      login(jwt);
       navigate("/");
+    } catch {
+      setError("Sign in failed. Please try again.");
     }
   };
 
@@ -33,6 +41,11 @@ export default function AuthPage() {
         />
       </div>
 
+      {error && (
+        <Text variant="caption" className="text-red-600">
+          {error}
+        </Text>
+      )}
       <Text variant="caption" muted>
         Sign in to start exploring
       </Text>

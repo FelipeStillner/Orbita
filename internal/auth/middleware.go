@@ -15,26 +15,22 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		token := authHeader[7:]
-		googleUser, err := verifyGoogleToken(token)
+		userID, err := VerifyToken(token)
 		if err != nil {
 			http.Error(w, "Invalid token: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		user, err := GetUser(r.Context(), googleUser.GoogleID)
+		user, err := GetUserByID(r.Context(), userID)
 		if err != nil {
-			log.Printf("failed to get user by google id: %v", err)
+			log.Printf("failed to get user by id: %v", err)
 			http.Error(w, "Failed to load user", http.StatusInternalServerError)
 			return
 		}
 
 		if user == nil {
-			user, err = NewUser(r.Context(), googleUser)
-			if err != nil {
-				log.Printf("failed to create user for google id %s: %v", googleUser.GoogleID, err)
-				http.Error(w, "Failed to create user", http.StatusInternalServerError)
-				return
-			}
+			http.Error(w, "User not found", http.StatusUnauthorized)
+			return
 		}
 
 		ctx := context.WithValue(r.Context(), "user", user)

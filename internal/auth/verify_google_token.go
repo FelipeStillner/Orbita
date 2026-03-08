@@ -8,7 +8,7 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-func verifyGoogleToken(tokenString string) (*GoogleUser, error) {
+func VerifyGoogleToken(tokenString string) (*GoogleUser, error) {
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	if googleClientID == "" {
 		return nil, errors.New("GOOGLE_CLIENT_ID is not set")

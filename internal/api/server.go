@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	authHandler "github.com/FelipeStillner/Orbita/internal/api/v1/auth"
 	collectionHandler "github.com/FelipeStillner/Orbita/internal/api/v1/collection"
 	placeHandler "github.com/FelipeStillner/Orbita/internal/api/v1/place"
 	"github.com/FelipeStillner/Orbita/internal/database"
@@ -27,6 +28,9 @@ func NewServer(q *database.Queries) *Server {
 }
 
 func (s *Server) mountRoutes() {
+	ah := authHandler.NewHandler()
+	ah.RegisterRoutes(s.Router)
+
 	ps := placeService.NewService(s.Queries)
 	ph := placeHandler.NewHandler(ps)
 	ph.RegisterRoutes(s.Router)

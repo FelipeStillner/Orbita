@@ -1,10 +1,10 @@
 export const getAuthHeaders = () => {
-    const googleToken = localStorage.getItem("auth_token");
-    if (!googleToken) {
-        throw new Error("No Google token found");
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+        throw new Error("No auth token found");
     }
     return {
-        Authorization: `Bearer ${googleToken}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
     } as const;
 };
