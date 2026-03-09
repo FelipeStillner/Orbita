@@ -18,10 +18,6 @@ func NewService(q *database.Queries) *Service {
 	return &Service{queries: q}
 }
 
-func (s *Service) ListByUser(ctx context.Context, userID uuid.UUID) ([]database.Collection, error) {
-	return s.queries.ListCollectionsByUser(ctx, userID)
-}
-
 func (s *Service) ListByUserWithPlaceCount(ctx context.Context, userID uuid.UUID) ([]database.ListCollectionsByUserWithPlaceCountRow, error) {
 	return s.queries.ListCollectionsByUserWithPlaceCount(ctx, userID)
 }

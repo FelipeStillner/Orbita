@@ -123,42 +123,6 @@ func (q *Queries) ListCollectionItemsByPlaceIDs(ctx context.Context, arg ListCol
 	return items, nil
 }
 
-const listCollectionsByUser = `-- name: ListCollectionsByUser :many
-SELECT id, user_id, name, created_at, updated_at
-FROM collections
-WHERE user_id = $1
-ORDER BY name ASC
-`
-
-func (q *Queries) ListCollectionsByUser(ctx context.Context, userID uuid.UUID) ([]Collection, error) {
-	rows, err := q.db.QueryContext(ctx, listCollectionsByUser, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Collection
-	for rows.Next() {
-		var i Collection
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Name,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listCollectionsByUserWithPlaceCount = `-- name: ListCollectionsByUserWithPlaceCount :many
 SELECT c.id, c.name, COUNT(cp.place_id)::int AS place_count
 FROM collections c
@@ -184,48 +148,6 @@ func (q *Queries) ListCollectionsByUserWithPlaceCount(ctx context.Context, userI
 	for rows.Next() {
 		var i ListCollectionsByUserWithPlaceCountRow
 		if err := rows.Scan(&i.ID, &i.Name, &i.PlaceCount); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listCollectionsForPlace = `-- name: ListCollectionsForPlace :many
-SELECT c.id, c.user_id, c.name, c.created_at, c.updated_at
-FROM collections c
-INNER JOIN collection_place cp ON cp.collection_id = c.id
-WHERE c.user_id = $1 AND cp.place_id = $2
-ORDER BY c.name ASC
-`
-
-type ListCollectionsForPlaceParams struct {
-	UserID  uuid.UUID
-	PlaceID uuid.UUID
-}
-
-func (q *Queries) ListCollectionsForPlace(ctx context.Context, arg ListCollectionsForPlaceParams) ([]Collection, error) {
-	rows, err := q.db.QueryContext(ctx, listCollectionsForPlace, arg.UserID, arg.PlaceID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Collection
-	for rows.Next() {
-		var i Collection
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Name,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
