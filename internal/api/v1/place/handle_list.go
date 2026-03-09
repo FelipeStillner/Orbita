@@ -49,26 +49,23 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	features := []map[string]any{}
+	items := make([]map[string]any, 0, len(places))
 	for _, p := range places {
-		features = append(features, map[string]any{
-			"type":     "Feature",
-			"geometry": p.GeoJSON,
-			"properties": map[string]any{
-				"id":          p.ID,
-				"name":        p.Name,
-				"images":      p.Images,
-				"description": p.Description,
-				"category":    p.Category,
-				"liked":       p.Liked,
-				"collections": p.Collections,
-			},
+		items = append(items, map[string]any{
+			"id":          p.ID,
+			"name":        p.Name,
+			"latitude":    p.Latitude,
+			"longitude":   p.Longitude,
+			"images":      p.Images,
+			"description": p.Description,
+			"category":    p.Category,
+			"liked":       p.Liked,
+			"collections": p.Collections,
 		})
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"type":     "FeatureCollection",
-		"features": features,
+		"places": items,
 		"meta": map[string]int{
 			"page":  page,
 			"limit": limit,

@@ -9,7 +9,7 @@ export interface PlaceCollection {
   name: string;
 }
 
-export interface PlaceProperties {
+export interface Place {
   id: string;
   name: string;
   category: string;
@@ -17,18 +17,14 @@ export interface PlaceProperties {
   images: Image[] | null; // Can be null if no images
   liked: boolean;
   collections?: PlaceCollection[];
+  latitude: number;
+  longitude: number;
 }
 
-export interface PlaceFeature {
-  type: "Feature";
-  geometry: {
-    type: "Point";
-    coordinates: [number, number];
+export interface PlacesResponse {
+  places: Place[];
+  meta: {
+    page: number;
+    limit: number;
   };
-  properties: PlaceProperties;
-}
-
-export interface FeatureCollection {
-  type: "FeatureCollection";
-  features: PlaceFeature[];
 }

@@ -2,18 +2,18 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PlaceReel from "./PlaceReel";
 import SaveToCollectionDrawer from "./SaveToCollectionDrawer";
-import type { PlaceFeature } from "../types";
+import type { Place } from "../types";
 import type { RefObject } from "react";
 import { Text, Button } from "../../../components";
 import { BackIcon } from "../../../assets/icons";
 
 interface Props {
-  places: PlaceFeature[];
+  places: Place[];
   loadMoreRef: RefObject<HTMLDivElement | null>;
   isFetchingNextPage: boolean;
-  onOpenMap: (place: PlaceFeature) => void;
+  onOpenMap: (place: Place) => void;
   onInteraction: (
-    place: PlaceFeature,
+    place: Place,
     action: "like" | "hide"
   ) => void;
 }
@@ -27,7 +27,7 @@ export default function FeedList({
 }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
-  const [saveDrawerPlace, setSaveDrawerPlace] = useState<PlaceFeature | null>(null);
+  const [saveDrawerPlace, setSaveDrawerPlace] = useState<Place | null>(null);
 
   useLayoutEffect(() => {
     if (listRef.current) {
@@ -70,8 +70,8 @@ export default function FeedList({
 
       {places.map((place, index) => (
         <PlaceReel
-          key={place.properties.id}
-          data={place.properties}
+          key={place.id}
+          data={place}
           onOpenMap={() => onOpenMap(place)}
           onInteraction={(action) => onInteraction(place, action)}
           onSaveClick={() => setSaveDrawerPlace(place)}
@@ -80,7 +80,7 @@ export default function FeedList({
       ))}
 
       <SaveToCollectionDrawer
-        key={saveDrawerPlace?.properties.id ?? "closed"}
+        key={saveDrawerPlace?.id ?? "closed"}
         place={saveDrawerPlace}
         onClose={() => setSaveDrawerPlace(null)}
       />

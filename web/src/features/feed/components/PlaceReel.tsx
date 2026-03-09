@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import type { PlaceProperties } from "../types";
+import type { Place } from "../types";
 import { Button, Badge, Text } from "../../../components";
 import { LikeIcon, LikedIcon, HideIcon, SaveIcon, SavedIcon, MapIcon } from "../../../assets/icons";
 
 interface Props {
-  data: PlaceProperties;
+  data: Place;
   onOpenMap: () => void;
   index?: number;
   onInteraction?: (action: "like" | "hide") => void;

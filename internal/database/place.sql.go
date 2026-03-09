@@ -93,7 +93,8 @@ SELECT
     p.name,
     p.category,
     p.description,
-    ST_AsGeoJSON(p.location)::json AS geojson,
+    ST_Y(p.location::geometry)::float AS latitude,
+    ST_X(p.location::geometry)::float AS longitude,
     COALESCE(upi.liked, FALSE) AS liked,
     COALESCE(
         json_agg(
@@ -135,7 +136,8 @@ type ListPlacesRow struct {
 	Name        string
 	Category    string
 	Description sql.NullString
-	Geojson     json.RawMessage
+	Latitude    float64
+	Longitude   float64
 	Liked       bool
 	Images      json.RawMessage
 }
@@ -161,7 +163,8 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 			&i.Name,
 			&i.Category,
 			&i.Description,
-			&i.Geojson,
+			&i.Latitude,
+			&i.Longitude,
 			&i.Liked,
 			&i.Images,
 		); err != nil {

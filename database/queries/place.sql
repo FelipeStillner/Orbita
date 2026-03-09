@@ -4,7 +4,8 @@ SELECT
     p.name,
     p.category,
     p.description,
-    ST_AsGeoJSON(p.location)::json AS geojson,
+    ST_Y(p.location::geometry)::float AS latitude,
+    ST_X(p.location::geometry)::float AS longitude,
     COALESCE(upi.liked, FALSE) AS liked,
     COALESCE(
         json_agg(

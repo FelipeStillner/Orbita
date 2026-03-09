@@ -6,12 +6,12 @@ import {
   addPlaceToCollection,
   removePlaceFromCollection,
 } from "../api";
-import type { PlaceFeature } from "../types";
+import type { Place } from "../types";
 import { Button, Text, Drawer, Input } from "../../../components";
 import { PlusIcon, CheckIcon } from "../../../assets/icons";
 
 interface SaveToCollectionDrawerProps {
-  place: PlaceFeature | null;
+  place: Place | null;
   onClose: () => void;
   onSaved?: () => void;
 }
@@ -23,10 +23,10 @@ export default function SaveToCollectionDrawer({
 }: SaveToCollectionDrawerProps) {
   const queryClient = useQueryClient();
   const open = !!place;
-  const placeId = place?.properties.id ?? "";
+  const placeId = place?.id ?? "";
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() =>
-    new Set((place?.properties.collections ?? []).map((c) =>
+    new Set((place?.collections ?? []).map((c) =>
       String(c.id)
     ))
   );
@@ -100,7 +100,7 @@ export default function SaveToCollectionDrawer({
             <ul className="space-y-1 max-h-60 overflow-y-auto no-scrollbar">
               {collections.map((col) => {
                 const isInPlaceCollections = (
-                  place?.properties.collections ?? []
+                  place?.collections ?? []
                 ).some((c) => String(c.id) === String(col.id));
                 const isChecked =
                   selectedIds.has(col.id) || isInPlaceCollections;

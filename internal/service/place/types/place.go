@@ -37,7 +37,8 @@ type CollectionItem struct {
 type Result struct {
 	ID          uuid.UUID
 	Name        string
-	GeoJSON     any
+	Latitude    float64
+	Longitude   float64
 	Images      any
 	Description string
 	Category    string
