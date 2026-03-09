@@ -6,7 +6,7 @@ import {
   deleteCollection,
   fetchCollectionPlaces,
   removePlaceFromCollection,
-} from "../../../api";
+} from "@api";
 
 export function useCollectionsViewModel() {
   const queryClient = useQueryClient();

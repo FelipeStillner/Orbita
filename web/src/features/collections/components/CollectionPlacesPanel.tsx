@@ -1,7 +1,7 @@
-import { Button, Text } from "../../../components";
-import { BackIcon } from "../../../assets/icons";
+import { Button, Text } from "@components";
+import { BackIcon } from "@assets/icons";
 import PlaceItemRow from "./PlaceItemRow";
-import type { Collection, CollectionPlace } from "../../../api";
+import type { Collection, CollectionPlace } from "@api";
 
 interface CollectionPlacesPanelProps {
   isOpen: boolean;

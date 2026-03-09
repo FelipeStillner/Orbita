@@ -4,8 +4,8 @@ import PlaceReel from "./PlaceReel";
 import SaveToCollectionDrawer from "./SaveToCollectionDrawer";
 import type { Place } from "../types";
 import type { RefObject } from "react";
-import { Text, Button } from "../../../components";
-import { BackIcon } from "../../../assets/icons";
+import { Text, Button } from "@components";
+import { BackIcon } from "@assets/icons";
 
 interface Props {
   places: Place[];

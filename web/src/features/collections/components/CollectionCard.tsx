@@ -1,6 +1,6 @@
-import { Button, Card, Text } from "../../../components";
-import { TrashIcon } from "../../../assets/icons";
-import type { Collection } from "../../../api";
+import { Button, Card, Text } from "@components";
+import { TrashIcon } from "@assets/icons";
+import type { Collection } from "@api";
 
 interface CollectionCardProps {
   collection: Collection;

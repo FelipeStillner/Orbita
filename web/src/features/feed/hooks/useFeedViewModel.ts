@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useGeolocation } from "../../../hooks/useGeolocation";
+import { useGeolocation } from "@hooks/useGeolocation";
 import { fetchPlaces, sendInteraction } from "../api";
 import type { Place, PlacesResponse } from "../types";
 

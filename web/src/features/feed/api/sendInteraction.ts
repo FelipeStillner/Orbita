@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAuthHeaders } from "../../../helpers/getAuthHeaders";
+import { getAuthHeaders } from "@helpers/getAuthHeaders";
 
 export interface InteractionPayload {
   liked?: boolean;

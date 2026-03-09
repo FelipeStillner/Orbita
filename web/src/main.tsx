@@ -5,7 +5,7 @@ import { RouterProvider } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { router } from "./app/Router";
 import "./index.css";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "@context/AuthContext";
 
 const queryClient = new QueryClient();
 

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Button, Page, Text, Input } from "../../../components";
-import { BackIcon, PlusIcon } from "../../../assets/icons";
+import { Button, Page, Text, Input } from "@components";
+import { BackIcon, PlusIcon } from "@assets/icons";
 import CollectionCard from "./CollectionCard";
-import type { Collection } from "../../../api";
+import type { Collection } from "@api";
 import type { CollectionsViewModel } from "../hooks/useCollectionsViewModel";
 
 interface CollectionsListViewProps {

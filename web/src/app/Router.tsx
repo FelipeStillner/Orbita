@@ -3,7 +3,7 @@ import HomePage from "../features/home/HomePage";
 import FeedPage from "../features/feed/FeedPage";
 import CollectionsPage from "../features/collections/CollectionsPage";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@context/AuthContext";
 import AuthPage from "../features/auth/AuthPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

@@ -1,8 +1,8 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { Page, Text } from "../../components";
+import { useAuth } from "@context/AuthContext";
+import { Page, Text } from "@components";
 import { loginWithGoogleToken } from "./api/login";
 
 export default function AuthPage() {

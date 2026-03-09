@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Place } from "../types";
-import { Button, Badge, Text } from "../../../components";
-import { LikeIcon, LikedIcon, HideIcon, SaveIcon, SavedIcon, MapIcon } from "../../../assets/icons";
+import { Button, Badge, Text } from "@components";
+import { LikeIcon, LikedIcon, HideIcon, SaveIcon, SavedIcon, MapIcon } from "@assets/icons";
 
 interface Props {
   data: Place;

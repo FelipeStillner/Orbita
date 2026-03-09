@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Page, Text, Button } from "../../../components";
+import { Page, Text, Button } from "@components";
 
 export default function FeedError() {
   return (

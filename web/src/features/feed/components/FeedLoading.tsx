@@ -1,4 +1,4 @@
-import { Page, Text } from "../../../components";
+import { Page, Text } from "@components";
 
 export default function FeedLoading() {
   return (

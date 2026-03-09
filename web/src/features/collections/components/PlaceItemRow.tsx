@@ -1,6 +1,6 @@
-import { Button, Text } from "../../../components";
-import { TrashIcon } from "../../../assets/icons";
-import type { CollectionPlace } from "../../../api";
+import { Button, Text } from "@components";
+import { TrashIcon } from "@assets/icons";
+import type { CollectionPlace } from "@api";
 
 interface PlaceItemRowProps {
   place: CollectionPlace;

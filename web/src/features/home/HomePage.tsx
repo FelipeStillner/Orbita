@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { Button, Page, Text } from "../../components";
+import { useAuth } from "@context/AuthContext";
+import { Button, Page, Text } from "@components";
 
 export default function HomePage() {
   const navigate = useNavigate();
