@@ -15,16 +15,27 @@ type listRequest struct {
 	Offset int32
 }
 
+type listPlaceImage struct {
+	URL         string `json:"url"`
+	Description string `json:"description"`
+	IsPrimary   bool   `json:"is_primary"`
+}
+
+type listCollectionItem struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type listPlaceItem struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
-	Images      any     `json:"images"`
-	Description string  `json:"description"`
-	Category    string  `json:"category"`
-	Liked       bool    `json:"liked"`
-	Collections any     `json:"collections"`
+	ID          string               `json:"id"`
+	Name        string               `json:"name"`
+	Latitude    float64              `json:"latitude"`
+	Longitude   float64              `json:"longitude"`
+	Images      []listPlaceImage     `json:"images"`
+	Description string               `json:"description"`
+	Category    string               `json:"category"`
+	Liked       bool                 `json:"liked"`
+	Collections []listCollectionItem `json:"collections"`
 }
 
 type listResponse struct {
@@ -57,16 +68,28 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 	// Handle the Response
 	items := make([]listPlaceItem, 0, len(places))
 	for _, p := range places {
+		images := make([]listPlaceImage, len(p.Images))
+		for j, img := range p.Images {
+			images[j] = listPlaceImage{
+				URL:         img.URL,
+				Description: img.Description,
+				IsPrimary:   img.IsPrimary,
+			}
+		}
+		collections := make([]listCollectionItem, len(p.Collections))
+		for j, c := range p.Collections {
+			collections[j] = listCollectionItem{ID: c.ID.String(), Name: c.Name}
+		}
 		items = append(items, listPlaceItem{
 			ID:          p.ID.String(),
 			Name:        p.Name,
 			Latitude:    p.Latitude,
 			Longitude:   p.Longitude,
-			Images:      p.Images,
+			Images:      images,
 			Description: p.Description,
 			Category:    p.Category,
 			Liked:       p.Liked,
-			Collections: p.Collections,
+			Collections: collections,
 		})
 	}
 	page := int(req.Offset/req.Limit) + 1

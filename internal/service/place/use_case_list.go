@@ -53,6 +53,23 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 		placeIDs[i] = row.ID
 	}
 
+	var imagesByPlace map[uuid.UUID][]types.PlaceImage
+	if len(placeIDs) > 0 {
+		imageRows, err := s.queries.ListPlaceImagesByPlaceIDs(ctx, placeIDs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list place images: %w", err)
+		}
+		imagesByPlace = make(map[uuid.UUID][]types.PlaceImage)
+		for _, r := range imageRows {
+			img := types.PlaceImage{
+				URL:         r.Url,
+				Description: r.Description.String,
+				IsPrimary:   r.IsPrimary.Bool,
+			}
+			imagesByPlace[r.PlaceID] = append(imagesByPlace[r.PlaceID], img)
+		}
+	}
+
 	var collectionsByPlace map[uuid.UUID][]types.CollectionItem
 	if len(placeIDs) > 0 {
 		collectionRows, err := s.queries.ListCollectionItemsByPlaceIDs(ctx, database.ListCollectionItemsByPlaceIDsParams{
@@ -73,6 +90,10 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 
 	results := make([]types.Result, len(rows))
 	for i, row := range rows {
+		var images []types.PlaceImage
+		if imagesByPlace != nil {
+			images = imagesByPlace[row.ID]
+		}
 		var collections []types.CollectionItem
 		if collectionsByPlace != nil {
 			collections = collectionsByPlace[row.ID]
@@ -82,7 +103,7 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 			Name:        row.Name,
 			Latitude:    row.Latitude,
 			Longitude:   row.Longitude,
-			Images:      row.Images,
+			Images:      images,
 			Description: row.Description.String,
 			Category:    row.Category,
 			Liked:       row.Liked,

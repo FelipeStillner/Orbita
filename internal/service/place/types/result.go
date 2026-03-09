@@ -2,9 +2,15 @@ package types
 
 import "github.com/google/uuid"
 
+type PlaceImage struct {
+	URL         string
+	Description string
+	IsPrimary   bool
+}
+
 type CollectionItem struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID   uuid.UUID
+	Name string
 }
 
 type Result struct {
@@ -12,7 +18,7 @@ type Result struct {
 	Name        string
 	Latitude    float64
 	Longitude   float64
-	Images      any
+	Images      []PlaceImage
 	Description string
 	Category    string
 	Liked       bool

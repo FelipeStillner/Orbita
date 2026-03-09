@@ -8,7 +8,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -87,6 +86,48 @@ func (q *Queries) CreatePlacesBatch(ctx context.Context, arg CreatePlacesBatchPa
 	return items, nil
 }
 
+const listPlaceImagesByPlaceIDs = `-- name: ListPlaceImagesByPlaceIDs :many
+SELECT place_id, url, description, is_primary
+FROM place_image
+WHERE place_id = ANY($1::uuid[])
+ORDER BY place_id, is_primary DESC
+`
+
+type ListPlaceImagesByPlaceIDsRow struct {
+	PlaceID     uuid.UUID
+	Url         string
+	Description sql.NullString
+	IsPrimary   sql.NullBool
+}
+
+func (q *Queries) ListPlaceImagesByPlaceIDs(ctx context.Context, placeIds []uuid.UUID) ([]ListPlaceImagesByPlaceIDsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPlaceImagesByPlaceIDs, pq.Array(placeIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPlaceImagesByPlaceIDsRow
+	for rows.Next() {
+		var i ListPlaceImagesByPlaceIDsRow
+		if err := rows.Scan(
+			&i.PlaceID,
+			&i.Url,
+			&i.Description,
+			&i.IsPrimary,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPlaces = `-- name: ListPlaces :many
 SELECT
     p.id,
@@ -95,26 +136,14 @@ SELECT
     p.description,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
-    COALESCE(upi.liked, FALSE) AS liked,
-    COALESCE(
-        json_agg(
-            json_build_object(
-                'url', i.url,
-                'description', i.description,
-                'is_primary', i.is_primary
-            )
-        ) FILTER (WHERE i.id IS NOT NULL),
-        '[]'
-    )::json AS images
+    COALESCE(upi.liked, FALSE) AS liked
 FROM place p
-LEFT JOIN place_image i ON p.id = i.place_id
 LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
 WHERE ST_DWithin(
     p.location::geography,
     ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography,
     $6::float
 ) AND COALESCE(upi.hidden, FALSE) = FALSE
-GROUP BY p.id, upi.liked, upi.hidden
 ORDER BY ST_Distance(
     p.location::geography,
     ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography
@@ -139,7 +168,6 @@ type ListPlacesRow struct {
 	Latitude    float64
 	Longitude   float64
 	Liked       bool
-	Images      json.RawMessage
 }
 
 func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListPlacesRow, error) {
@@ -166,7 +194,6 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 			&i.Latitude,
 			&i.Longitude,
 			&i.Liked,
-			&i.Images,
 		); err != nil {
 			return nil, err
 		}
