@@ -2,10 +2,13 @@ package collection
 
 import (
 	"context"
+	"errors"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
 	"github.com/google/uuid"
 )
+
+var ErrNotFound = errors.New("collection not found")
 
 type Service struct {
 	queries *database.Queries
@@ -17,6 +20,14 @@ func NewService(q *database.Queries) *Service {
 
 func (s *Service) ListByUser(ctx context.Context, userID uuid.UUID) ([]database.Collection, error) {
 	return s.queries.ListCollectionsByUser(ctx, userID)
+}
+
+func (s *Service) ListByUserWithPlaceCount(ctx context.Context, userID uuid.UUID) ([]database.ListCollectionsByUserWithPlaceCountRow, error) {
+	return s.queries.ListCollectionsByUserWithPlaceCount(ctx, userID)
+}
+
+func (s *Service) ListPlaces(ctx context.Context, collectionID uuid.UUID) ([]database.ListPlacesInCollectionRow, error) {
+	return s.queries.ListPlacesInCollection(ctx, collectionID)
 }
 
 func (s *Service) Create(ctx context.Context, userID uuid.UUID, name string) (database.Collection, error) {
@@ -42,4 +53,15 @@ func (s *Service) RemovePlace(ctx context.Context, collectionID, placeID uuid.UU
 
 func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (database.Collection, error) {
 	return s.queries.GetCollection(ctx, id)
+}
+
+func (s *Service) Delete(ctx context.Context, collectionID, userID uuid.UUID) error {
+	col, err := s.queries.GetCollection(ctx, collectionID)
+	if err != nil {
+		return ErrNotFound
+	}
+	if col.UserID != userID {
+		return ErrNotFound
+	}
+	return s.queries.DeleteCollection(ctx, collectionID)
 }

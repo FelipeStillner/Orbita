@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import HomePage from "../features/home/HomePage";
 import FeedPage from "../features/feed/FeedPage";
+import CollectionsPage from "../features/collections/CollectionsPage";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthPage from "../features/auth/AuthPage";
@@ -22,5 +23,9 @@ export const router = createBrowserRouter([
   {
     path: "/feed",
     element: <ProtectedRoute><FeedPage /></ProtectedRoute>,
+  },
+  {
+    path: "/collections",
+    element: <ProtectedRoute><CollectionsPage /></ProtectedRoute>,
   },
 ]);

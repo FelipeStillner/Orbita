@@ -52,6 +52,16 @@ func (q *Queries) CreateCollection(ctx context.Context, arg CreateCollectionPara
 	return i, err
 }
 
+const deleteCollection = `-- name: DeleteCollection :exec
+DELETE FROM collections
+WHERE id = $1
+`
+
+func (q *Queries) DeleteCollection(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteCollection, id)
+	return err
+}
+
 const getCollection = `-- name: GetCollection :one
 SELECT id, user_id, name, created_at, updated_at
 FROM collections
@@ -149,6 +159,44 @@ func (q *Queries) ListCollectionsByUser(ctx context.Context, userID uuid.UUID) (
 	return items, nil
 }
 
+const listCollectionsByUserWithPlaceCount = `-- name: ListCollectionsByUserWithPlaceCount :many
+SELECT c.id, c.name, COUNT(cp.place_id)::int AS place_count
+FROM collections c
+LEFT JOIN collection_place cp ON cp.collection_id = c.id
+WHERE c.user_id = $1
+GROUP BY c.id, c.name
+ORDER BY c.name ASC
+`
+
+type ListCollectionsByUserWithPlaceCountRow struct {
+	ID         uuid.UUID
+	Name       string
+	PlaceCount int32
+}
+
+func (q *Queries) ListCollectionsByUserWithPlaceCount(ctx context.Context, userID uuid.UUID) ([]ListCollectionsByUserWithPlaceCountRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCollectionsByUserWithPlaceCount, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCollectionsByUserWithPlaceCountRow
+	for rows.Next() {
+		var i ListCollectionsByUserWithPlaceCountRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.PlaceCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCollectionsForPlace = `-- name: ListCollectionsForPlace :many
 SELECT c.id, c.user_id, c.name, c.created_at, c.updated_at
 FROM collections c
@@ -178,6 +226,42 @@ func (q *Queries) ListCollectionsForPlace(ctx context.Context, arg ListCollectio
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPlacesInCollection = `-- name: ListPlacesInCollection :many
+SELECT p.id, p.name
+FROM place p
+INNER JOIN collection_place cp ON cp.place_id = p.id
+WHERE cp.collection_id = $1
+ORDER BY p.name ASC
+`
+
+type ListPlacesInCollectionRow struct {
+	ID   uuid.UUID
+	Name string
+}
+
+func (q *Queries) ListPlacesInCollection(ctx context.Context, collectionID uuid.UUID) ([]ListPlacesInCollectionRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPlacesInCollection, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPlacesInCollectionRow
+	for rows.Next() {
+		var i ListPlacesInCollectionRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

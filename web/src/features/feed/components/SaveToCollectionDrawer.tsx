@@ -5,7 +5,7 @@ import {
   createCollection,
   addPlaceToCollection,
   removePlaceFromCollection,
-} from "../api";
+} from "../../../api";
 import type { Place } from "../types";
 import { Button, Text, Drawer, Input } from "../../../components";
 import { PlusIcon, CheckIcon } from "../../../assets/icons";

@@ -30,13 +30,25 @@ export default function HomePage() {
         Your personal guide to discovering extraordinary places
       </Text>
 
-      <Button
-        size="lg"
-        onClick={() => navigate("/feed")}
-        rounded={false}
-      >
-        Start Exploring
-      </Button>
+      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+        <Button
+          size="lg"
+          onClick={() => navigate("/feed")}
+          rounded={false}
+          className="flex-1"
+        >
+          Start Exploring
+        </Button>
+        <Button
+          variant="ghost"
+          size="lg"
+          onClick={() => navigate("/collections")}
+          rounded={false}
+          className="flex-1"
+        >
+          My Collections
+        </Button>
+      </div>
     </Page>
   );
 }

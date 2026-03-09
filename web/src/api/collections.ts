@@ -1,7 +1,13 @@
 import axios from "axios";
-import { getAuthHeaders } from "../../../helpers/getAuthHeaders";
+import { getAuthHeaders } from "../helpers/getAuthHeaders";
 
 export interface Collection {
+  id: string;
+  name: string;
+  place_count?: number;
+}
+
+export interface CollectionPlace {
   id: string;
   name: string;
 }
@@ -20,6 +26,12 @@ export const createCollection = async (name: string): Promise<Collection> => {
     { headers: getAuthHeaders() }
   );
   return data;
+};
+
+export const deleteCollection = async (collectionId: string): Promise<void> => {
+  await axios.delete(`/api/collections/${collectionId}`, {
+    headers: getAuthHeaders(),
+  });
 };
 
 export const addPlaceToCollection = async (
@@ -41,4 +53,14 @@ export const removePlaceFromCollection = async (
     `/api/collections/${collectionId}/places/${placeId}`,
     { headers: getAuthHeaders() }
   );
+};
+
+export const fetchCollectionPlaces = async (
+  collectionId: string
+): Promise<CollectionPlace[]> => {
+  const { data } = await axios.get<CollectionPlace[]>(
+    `/api/collections/${collectionId}/places`,
+    { headers: getAuthHeaders() }
+  );
+  return data;
 };
