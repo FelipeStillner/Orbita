@@ -32,7 +32,7 @@ func (h *handler) handleUpsertInteraction(w http.ResponseWriter, r *http.Request
 
 	// Application Logic
 	ctx := r.Context()
-	if err := h.service.SetInteraction(ctx, userID, params.PlaceID, params.Liked, params.Hidden); err != nil {
+	if err := h.service.UpsertInteraction(ctx, userID, params.PlaceID, params.Liked, params.Hidden); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

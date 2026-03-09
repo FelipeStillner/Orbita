@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) SetInteraction(ctx context.Context, userID, placeID uuid.UUID, liked, hidden bool) error {
+func (s *Service) UpsertInteraction(ctx context.Context, userID, placeID uuid.UUID, liked, hidden bool) error {
 
 	return s.queries.UpsertUserPlaceInteraction(ctx, database.UpsertUserPlaceInteractionParams{
 		UserID:  userID,

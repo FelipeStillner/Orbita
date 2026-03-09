@@ -27,6 +27,7 @@ func (h *handler) handleDelete(w http.ResponseWriter, r *http.Request) {
 	// Application Logic
 	ctx := r.Context()
 	if err := h.service.Delete(ctx, collectionID, userID); err != nil {
+		// FIX: I don't like this use of the Application Layer
 		if errors.Is(err, collection.ErrNotFound) {
 			http.Error(w, "Collection not found", http.StatusNotFound)
 			return
