@@ -14,7 +14,7 @@ export interface Place {
   name: string;
   category: string;
   description: string;
-  images: Image[] | null; // Can be null if no images
+  images: Image[];
   liked: boolean;
   collections?: PlaceCollection[];
   latitude: number;

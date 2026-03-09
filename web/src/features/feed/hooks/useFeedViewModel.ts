@@ -9,7 +9,7 @@ export function useFeedViewModel() {
 
   const queryClient = useQueryClient();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: placesLoading } =
     useInfiniteQuery<PlacesResponse>({
       queryKey: ["feed", location?.lat, location?.lng],
       queryFn: ({ pageParam = 1 }) => {
@@ -83,7 +83,9 @@ export function useFeedViewModel() {
 
   if (locError) {
     viewState = "ERROR";
-  } else if (!locLoading && location) {
+  } else if (locLoading || (!!location && placesLoading)) {
+    viewState = "LOADING";
+  } else {
     viewState = "SUCCESS";
   }
 
