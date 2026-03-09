@@ -6,24 +6,85 @@ import (
 	"strconv"
 
 	"github.com/FelipeStillner/Orbita/internal/auth"
-	"github.com/google/uuid"
 )
 
+type listRequest struct {
+	Lat    float64
+	Long   float64
+	Limit  int32
+	Offset int32
+}
+
+type listPlaceItem struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+	Images      any     `json:"images"`
+	Description string  `json:"description"`
+	Category    string  `json:"category"`
+	Liked       bool    `json:"liked"`
+	Collections any     `json:"collections"`
+}
+
+type listResponse struct {
+	Places []listPlaceItem `json:"places"`
+	Meta   struct {
+		Page  int `json:"page"`
+		Limit int `json:"limit"`
+	} `json:"meta"`
+}
+
 func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
+	// Handle the Request Structure
+	userID, ok := auth.UserIDFromRequest(w, r)
+	if !ok {
+		return
+	}
+	req, ok := parseListRequest(w, r)
+	if !ok {
+		return
+	}
+
+	// Application Logic
 	ctx := r.Context()
-	uVal := ctx.Value("user")
-	u, ok := uVal.(*auth.User)
-	if !ok || u == nil {
-		http.Error(w, "User not found in context", http.StatusInternalServerError)
-		return
-	}
-
-	userID, err := uuid.Parse(u.ID)
+	places, err := h.service.List(ctx, userID, req.Lat, req.Long, req.Limit, req.Offset)
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Handle the Response
+	items := make([]listPlaceItem, 0, len(places))
+	for _, p := range places {
+		items = append(items, listPlaceItem{
+			ID:          p.ID.String(),
+			Name:        p.Name,
+			Latitude:    p.Latitude,
+			Longitude:   p.Longitude,
+			Images:      p.Images,
+			Description: p.Description,
+			Category:    p.Category,
+			Liked:       p.Liked,
+			Collections: p.Collections,
+		})
+	}
+	page := int(req.Offset/req.Limit) + 1
+	resp := listResponse{
+		Places: items,
+		Meta: struct {
+			Page  int `json:"page"`
+			Limit int `json:"limit"`
+		}{
+			Page:  page,
+			Limit: int(req.Limit),
+		},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+func parseListRequest(w http.ResponseWriter, r *http.Request) (listRequest, bool) {
 	lat, _ := strconv.ParseFloat(r.URL.Query().Get("lat"), 64)
 	long, _ := strconv.ParseFloat(r.URL.Query().Get("long"), 64)
 
@@ -42,33 +103,10 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	offset := (page - 1) * limit
-
-	places, err := h.service.List(ctx, userID, lat, long, int32(limit), int32(offset))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	items := make([]map[string]any, 0, len(places))
-	for _, p := range places {
-		items = append(items, map[string]any{
-			"id":          p.ID,
-			"name":        p.Name,
-			"latitude":    p.Latitude,
-			"longitude":   p.Longitude,
-			"images":      p.Images,
-			"description": p.Description,
-			"category":    p.Category,
-			"liked":       p.Liked,
-			"collections": p.Collections,
-		})
-	}
-
-	json.NewEncoder(w).Encode(map[string]any{
-		"places": items,
-		"meta": map[string]int{
-			"page":  page,
-			"limit": limit,
-		},
-	})
+	return listRequest{
+		Lat:    lat,
+		Long:   long,
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	}, true
 }

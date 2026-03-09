@@ -8,28 +8,28 @@ import (
 	"github.com/google/uuid"
 )
 
+type listPlacesResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 func (h *handler) handleListPlaces(w http.ResponseWriter, r *http.Request) {
+	// Handle the Request Structure
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	userID, ok := auth.UserIDFromRequest(w, r)
+	if !ok {
+		return
+	}
+	collectionID, ok := parseListPlacesRequest(w, r)
+	if !ok {
+		return
+	}
+
+	// Application Logic
 	ctx := r.Context()
-	u, ok := ctx.Value("user").(*auth.User)
-	if !ok || u == nil {
-		http.Error(w, "User not found in context", http.StatusInternalServerError)
-		return
-	}
-	userID, err := uuid.Parse(u.ID)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
-		return
-	}
-	collectionIDStr := r.PathValue("id")
-	collectionID, err := uuid.Parse(collectionIDStr)
-	if err != nil {
-		http.Error(w, "Invalid collection ID", http.StatusBadRequest)
-		return
-	}
 	col, err := h.service.GetByID(ctx, collectionID)
 	if err != nil {
 		http.Error(w, "Collection not found", http.StatusNotFound)
@@ -44,13 +44,25 @@ func (h *handler) handleListPlaces(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	out := make([]map[string]any, len(places))
+
+	// Handle the Response
+	out := make([]listPlacesResponse, len(places))
 	for i, p := range places {
-		out[i] = map[string]any{
-			"id":   p.ID,
-			"name": p.Name,
+		out[i] = listPlacesResponse{
+			ID:   p.ID.String(),
+			Name: p.Name,
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(out)
+}
+
+func parseListPlacesRequest(w http.ResponseWriter, r *http.Request) (collectionID uuid.UUID, ok bool) {
+	collectionIDStr := r.PathValue("id")
+	collectionID, err := uuid.Parse(collectionIDStr)
+	if err != nil {
+		http.Error(w, "Invalid collection ID", http.StatusBadRequest)
+		return uuid.Nil, false
+	}
+	return collectionID, true
 }
