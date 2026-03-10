@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sqlc-dev/pqtype"
 )
 
 type Collection struct {
@@ -26,13 +27,15 @@ type CollectionPlace struct {
 }
 
 type Place struct {
-	ID          uuid.UUID
-	Name        string
-	Description sql.NullString
-	Category    string
-	Location    interface{}
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID           uuid.UUID
+	Name         string
+	Description  sql.NullString
+	Category     string
+	Location     interface{}
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Tags         pqtype.NullRawMessage
+	OpeningHours sql.NullString
 }
 
 type PlaceImage struct {

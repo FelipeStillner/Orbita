@@ -19,6 +19,11 @@ export interface Place {
   collections?: PlaceCollection[];
   latitude: number;
   longitude: number;
+  tags?: string[];
+  opening_hours?: string;
+  like_count?: number;
+  save_count?: number;
+  hide_count?: number;
 }
 
 export interface PlacesResponse {

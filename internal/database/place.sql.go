@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const addPlaceImagesBatch = `-- name: AddPlaceImagesBatch :exec
@@ -40,21 +41,25 @@ func (q *Queries) AddPlaceImagesBatch(ctx context.Context, arg AddPlaceImagesBat
 }
 
 const createPlacesBatch = `-- name: CreatePlacesBatch :many
-INSERT INTO place (name, description, category, location)
+INSERT INTO place (name, description, category, location, tags, opening_hours)
 SELECT
     unnest($1::text[]),
     unnest($2::text[]),
     unnest($3::text[]),
-    ST_SetSRID(ST_MakePoint(unnest($4::float8[]), unnest($5::float8[])), 4326)
+    ST_SetSRID(ST_MakePoint(unnest($4::float8[]), unnest($5::float8[])), 4326),
+    unnest(COALESCE($6::text[], ARRAY[]::text[]))::jsonb,
+    unnest(COALESCE($7::text[], ARRAY[]::text[]))
 RETURNING id
 `
 
 type CreatePlacesBatchParams struct {
-	Names        []string
-	Descriptions []string
-	Categories   []string
-	Longs        []float64
-	Lats         []float64
+	Names            []string
+	Descriptions     []string
+	Categories       []string
+	Longs            []float64
+	Lats             []float64
+	Tags             []string
+	OpeningHoursList []string
 }
 
 func (q *Queries) CreatePlacesBatch(ctx context.Context, arg CreatePlacesBatchParams) ([]uuid.UUID, error) {
@@ -64,6 +69,8 @@ func (q *Queries) CreatePlacesBatch(ctx context.Context, arg CreatePlacesBatchPa
 		pq.Array(arg.Categories),
 		pq.Array(arg.Longs),
 		pq.Array(arg.Lats),
+		pq.Array(arg.Tags),
+		pq.Array(arg.OpeningHoursList),
 	)
 	if err != nil {
 		return nil, err
@@ -136,7 +143,12 @@ SELECT
     p.description,
     ST_Y(p.location::geometry)::float AS latitude,
     ST_X(p.location::geometry)::float AS longitude,
-    COALESCE(upi.liked, FALSE) AS liked
+    COALESCE(upi.liked, FALSE) AS liked,
+    COALESCE(p.tags, '[]'::jsonb) AS tags,
+    p.opening_hours,
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
+    (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
 FROM place p
 LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
 WHERE ST_DWithin(
@@ -161,13 +173,18 @@ type ListPlacesParams struct {
 }
 
 type ListPlacesRow struct {
-	ID          uuid.UUID
-	Name        string
-	Category    string
-	Description sql.NullString
-	Latitude    float64
-	Longitude   float64
-	Liked       bool
+	ID           uuid.UUID
+	Name         string
+	Category     string
+	Description  sql.NullString
+	Latitude     float64
+	Longitude    float64
+	Liked        bool
+	Tags         pqtype.NullRawMessage
+	OpeningHours sql.NullString
+	LikeCount    int32
+	SaveCount    int32
+	HideCount    int32
 }
 
 func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListPlacesRow, error) {
@@ -194,6 +211,11 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 			&i.Latitude,
 			&i.Longitude,
 			&i.Liked,
+			&i.Tags,
+			&i.OpeningHours,
+			&i.LikeCount,
+			&i.SaveCount,
+			&i.HideCount,
 		); err != nil {
 			return nil, err
 		}

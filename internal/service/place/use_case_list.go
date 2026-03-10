@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -98,16 +99,25 @@ func (s *Service) List(ctx context.Context, userId uuid.UUID, lat, long float64,
 		if collectionsByPlace != nil {
 			collections = collectionsByPlace[row.ID]
 		}
+		var tags []string
+		if row.Tags.Valid {
+			_ = json.Unmarshal(row.Tags.RawMessage, &tags)
+		}
 		results[i] = types.Result{
-			ID:          row.ID,
-			Name:        row.Name,
-			Latitude:    row.Latitude,
-			Longitude:   row.Longitude,
-			Images:      images,
-			Description: row.Description.String,
-			Category:    row.Category,
-			Liked:       row.Liked,
-			Collections: collections,
+			ID:           row.ID,
+			Name:         row.Name,
+			Latitude:     row.Latitude,
+			Longitude:    row.Longitude,
+			Images:       images,
+			Description:  row.Description.String,
+			Category:     row.Category,
+			Liked:        row.Liked,
+			Collections:  collections,
+			Tags:         tags,
+			OpeningHours: row.OpeningHours.String,
+			LikeCount:    row.LikeCount,
+			SaveCount:    row.SaveCount,
+			HideCount:    row.HideCount,
 		}
 	}
 
@@ -125,12 +135,14 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 	}
 
 	var (
-		names        []string
-		descriptions []string
-		categories   []string
-		lons         []float64
-		lats         []float64
-		wikidataIDs  []string
+		names            []string
+		descriptions     []string
+		categories       []string
+		lons             []float64
+		lats             []float64
+		wikidataIDs      []string
+		tagsJSON         []string
+		openingHoursList []string
 	)
 
 	for _, p := range places {
@@ -140,14 +152,19 @@ func (s *Service) fetchArea(ctx context.Context, lat, long float64) error {
 		lons = append(lons, p.Long)
 		lats = append(lats, p.Lat)
 		wikidataIDs = append(wikidataIDs, p.WikidataID)
+		raw, _ := json.Marshal(p.Tags)
+		tagsJSON = append(tagsJSON, string(raw))
+		openingHoursList = append(openingHoursList, p.OpeningHours)
 	}
 
 	placeIDs, err := s.queries.CreatePlacesBatch(ctx, database.CreatePlacesBatchParams{
-		Names:        names,
-		Descriptions: descriptions,
-		Categories:   categories,
-		Longs:        lons,
-		Lats:         lats,
+		Names:            names,
+		Descriptions:     descriptions,
+		Categories:       categories,
+		Longs:            lons,
+		Lats:             lats,
+		Tags:             tagsJSON,
+		OpeningHoursList: openingHoursList,
 	})
 	if err != nil {
 		return fmt.Errorf("batch insert error: %w", err)

@@ -122,7 +122,7 @@ export default function PlaceReel({
               {data.name}
             </Text>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <Button
                 size="sm"
                 variant="default"
@@ -135,6 +135,11 @@ export default function PlaceReel({
               </Button>
               <Badge>{data.category}</Badge>
             </div>
+            {data.opening_hours && (
+              <Text variant="body-sm" muted className="block mt-1">
+                Hours: {data.opening_hours}
+              </Text>
+            )}
 
           </div>
           <Text variant="body" className="leading-relaxed text-white/90 drop-shadow-lg max-w-2xl">
