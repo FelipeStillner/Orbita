@@ -136,6 +136,16 @@ func (q *Queries) ListPlaceImagesByPlaceIDs(ctx context.Context, placeIds []uuid
 }
 
 const listPlaces = `-- name: ListPlaces :many
+WITH user_preferred_categories AS (
+    SELECT DISTINCT p2.category
+    FROM place p2
+    JOIN user_place_interactions upi ON upi.place_id = p2.id AND upi.user_id = $3::uuid AND upi.liked = true
+    UNION
+    SELECT DISTINCT p2.category
+    FROM place p2
+    JOIN collection_place cp ON cp.place_id = p2.id
+    JOIN collections c ON c.id = cp.collection_id AND c.user_id = $3::uuid
+)
 SELECT
     p.id,
     p.name,
@@ -156,9 +166,11 @@ WHERE ST_DWithin(
     ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography,
     $6::float
 ) AND COALESCE(upi.hidden, FALSE) = FALSE
-ORDER BY ST_Distance(
-    p.location::geography,
-    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography
+ORDER BY (
+    ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography
+    ) * (1.0 + 0.3 * (1 - (CASE WHEN EXISTS (SELECT 1 FROM user_preferred_categories upc WHERE upc.category = p.category) THEN 1 ELSE 0 END)::float))
 ) ASC
 LIMIT $1 OFFSET $2
 `
@@ -187,6 +199,7 @@ type ListPlacesRow struct {
 	HideCount    int32
 }
 
+// Heuristic personalized ranking: prefer places in categories the user has liked or saved.
 func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListPlacesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listPlaces,
 		arg.Limit,
