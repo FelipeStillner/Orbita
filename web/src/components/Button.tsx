@@ -44,7 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           font-medium text-white/80 hover:text-white
           transition-all duration-300 transition-ease-out 
           cursor-pointer active:scale-95
-          animate-fade-slide-up hover-lift
+          hover-lift
           disabled:opacity-50 disabled:cursor-not-allowed
           ${variantStyles[variant]}
           ${rounded ? circleSizeStyles[size] : standardSizeStyles[size]}

@@ -17,7 +17,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={`
-          rounded-3xl p-6
+          rounded-3xl px-6 py-3
           ${variantStyles[variant]}
           glow-subtle
           transition-all duration-300 transition-ease-out

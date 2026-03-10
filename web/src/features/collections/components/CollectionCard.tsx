@@ -33,7 +33,7 @@ export default function CollectionCard({
         <Button
           variant="ghost"
           size="sm"
-          className="opacity-0 group-hover/card:opacity-100 transition-opacity flex-shrink-0 rounded-xl text-white/70 hover:text-white hover:bg-white/10"
+          className="opacity-100 rounded-xl hover:bg-white/10"
           onClick={onDelete}
           disabled={isDeleting}
           aria-label={`Delete collection ${collection.name}`}
