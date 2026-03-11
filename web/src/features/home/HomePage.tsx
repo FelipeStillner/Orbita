@@ -4,8 +4,7 @@ import CategorySection from "./components/CategorySection";
 import { Text, LoadingPage, ErrorPage, Button } from "@components";
 
 export default function HomePage() {
-  const { viewState, categories, loadMoreRef, isFetchingNextPage, scrollRef, isReady } =
-    useHomeViewModel();
+  const { viewState, categories, scrollRef, isReady } = useHomeViewModel();
 
   if (viewState === "ERROR")
     return (
@@ -38,7 +37,7 @@ export default function HomePage() {
       </Text>
 
       <div className="space-y-2">
-        {categories.length === 0 && !isFetchingNextPage ? (
+        {categories.length === 0 ? (
           <div className="px-6 py-12">
             <Text variant="body" muted>
               No places nearby yet. Check back later.
@@ -52,18 +51,6 @@ export default function HomePage() {
               places={places}
             />
           ))
-        )}
-      </div>
-
-      <div
-        ref={loadMoreRef}
-        className="h-20 w-full flex items-center justify-center"
-      >
-        {isFetchingNextPage && (
-          <div className="glass-dark rounded-full px-6 py-3 flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            <Text variant="body-sm">Loading more...</Text>
-          </div>
         )}
       </div>
     </div>

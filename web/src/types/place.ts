@@ -33,10 +33,15 @@ export interface PlaceListItem {
   images: Image[];
 }
 
-export interface PlacesResponse {
+export interface PlacesListResponse {
   places: PlaceListItem[];
-  meta: {
-    page: number;
-    limit: number;
-  };
+}
+
+export interface HomeCategorySection {
+  category: string;
+  places: PlaceListItem[];
+}
+
+export interface HomeResponse {
+  categories: HomeCategorySection[];
 }

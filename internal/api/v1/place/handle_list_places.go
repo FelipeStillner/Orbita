@@ -8,11 +8,10 @@ import (
 	"github.com/FelipeStillner/Orbita/internal/auth"
 )
 
-type listRequest struct {
-	Lat    float64
-	Long   float64
-	Limit  int32
-	Offset int32
+type listPlacesRequest struct {
+	Lat      float64
+	Long     float64
+	Category string
 }
 
 type listPlaceImage struct {
@@ -28,34 +27,27 @@ type listPlaceItem struct {
 	Images   []listPlaceImage `json:"images"`
 }
 
-type listResponse struct {
+type listPlacesResponse struct {
 	Places []listPlaceItem `json:"places"`
-	Meta   struct {
-		Page  int `json:"page"`
-		Limit int `json:"limit"`
-	} `json:"meta"`
 }
 
-func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
-	// Handle the Request Structure
+func (h *handler) handleListPlaces(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromRequest(w, r)
 	if !ok {
 		return
 	}
-	req, ok := parseListRequest(w, r)
+	req, ok := parseListPlacesRequest(w, r)
 	if !ok {
 		return
 	}
 
-	// Application Logic
 	ctx := r.Context()
-	places, err := h.service.List(ctx, userID, req.Lat, req.Long, req.Limit, req.Offset)
+	places, err := h.service.ListPlaces(ctx, userID, req.Lat, req.Long, req.Category)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Handle the Response
 	items := make([]listPlaceItem, 0, len(places))
 	for _, p := range places {
 		images := make([]listPlaceImage, len(p.Images))
@@ -73,44 +65,23 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 			Images:   images,
 		})
 	}
-	page := int(req.Offset/req.Limit) + 1
-	resp := listResponse{
-		Places: items,
-		Meta: struct {
-			Page  int `json:"page"`
-			Limit int `json:"limit"`
-		}{
-			Page:  page,
-			Limit: int(req.Limit),
-		},
-	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(listPlacesResponse{Places: items})
 }
 
-func parseListRequest(w http.ResponseWriter, r *http.Request) (listRequest, bool) {
+func parseListPlacesRequest(w http.ResponseWriter, r *http.Request) (listPlacesRequest, bool) {
 	lat, _ := strconv.ParseFloat(r.URL.Query().Get("lat"), 64)
 	long, _ := strconv.ParseFloat(r.URL.Query().Get("long"), 64)
+	category := r.URL.Query().Get("category")
 
-	pageStr := r.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
+	if category == "" {
+		http.Error(w, "category is required", http.StatusBadRequest)
+		return listPlacesRequest{}, false
 	}
 
-	limitStr := r.URL.Query().Get("limit")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit < 1 {
-		limit = 20
-	} else if limit > 100 {
-		limit = 100
-	}
-
-	offset := (page - 1) * limit
-	return listRequest{
-		Lat:    lat,
-		Long:   long,
-		Limit:  int32(limit),
-		Offset: int32(offset),
+	return listPlacesRequest{
+		Lat:      lat,
+		Long:     long,
+		Category: category,
 	}, true
 }

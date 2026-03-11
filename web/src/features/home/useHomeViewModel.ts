@@ -1,52 +1,38 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { useRef, useEffect, useLayoutEffect, useState } from "react";
+import { useQuery, useQueries } from "@tanstack/react-query";
+import { useRef, useLayoutEffect, useState, useMemo } from "react";
 import { useGeolocation } from "@hooks/useGeolocation";
-import { fetchPlaces } from "@api";
-import type { PlaceListItem, PlacesResponse } from "@types";
-
-const PLACES_PER_PAGE = 20;
-
-function groupPlacesByCategory(places: PlaceListItem[]): { category: string; places: PlaceListItem[] }[] {
-  const byCategory = new Map<string, PlaceListItem[]>();
-  for (const place of places) {
-    const cat = place.category || "Other";
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(place);
-  }
-  return Array.from(byCategory.entries()).map(([category, places]) => ({
-    category,
-    places,
-  }));
-}
+import { fetchListCategories, fetchListPlaces } from "@api";
+import type { PlaceListItem } from "@types";
 
 export function useHomeViewModel() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: placesLoading,
-  } = useInfiniteQuery<PlacesResponse>({
-    queryKey: ["feed", location?.lat, location?.lng],
-    queryFn: ({ pageParam = 1 }) => {
+  const homeQuery = useQuery({
+    queryKey: ["listCategories", location?.lat, location?.lng],
+    queryFn: () => {
       if (!location) throw new Error("Location not ready");
-      return fetchPlaces(
-        location.lat,
-        location.lng,
-        pageParam as number,
-        PLACES_PER_PAGE
-      );
-    },
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.places.length < PLACES_PER_PAGE) return undefined;
-      return allPages.length + 1;
+      return fetchListCategories(location.lat, location.lng);
     },
     enabled: !!location && !locLoading && !locError,
   });
 
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const homeCategories = homeQuery.data?.categories ?? [];
+  const categoryKeys = useMemo(
+    () => homeCategories.map((c) => c.category),
+    [homeCategories]
+  );
+
+  const categoryQueries = useQueries({
+    queries: categoryKeys.map((category) => ({
+      queryKey: ["listPlaces", location?.lat, location?.lng, category],
+      queryFn: () => {
+        if (!location) throw new Error("Location not ready");
+        return fetchListPlaces(location.lat, location.lng, category);
+      },
+      enabled: !!location && !!category,
+    })),
+  });
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -56,34 +42,25 @@ export function useHomeViewModel() {
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(() => {
-    const el = loadMoreRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
-
-  const places = data?.pages.flatMap((p: PlacesResponse) => p.places) ?? [];
-  const categories = groupPlacesByCategory(places);
+  const categories: { category: string; places: PlaceListItem[] }[] = useMemo(() => {
+    return homeCategories.map((section, i) => {
+      const fullData = categoryQueries[i]?.data;
+      const places =
+        fullData?.places && fullData.places.length > 0
+          ? fullData.places
+          : section.places;
+      return { category: section.category, places };
+    });
+  }, [homeCategories, categoryQueries]);
 
   let viewState: "LOADING" | "ERROR" | "SUCCESS" = "LOADING";
   if (locError) viewState = "ERROR";
-  else if (locLoading || (!!location && placesLoading)) viewState = "LOADING";
+  else if (locLoading || (!!location && homeQuery.isLoading)) viewState = "LOADING";
   else viewState = "SUCCESS";
 
   return {
     viewState,
     categories,
-    loadMoreRef,
-    isFetchingNextPage,
     scrollRef,
     isReady,
   };

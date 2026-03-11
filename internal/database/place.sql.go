@@ -152,6 +152,96 @@ func (q *Queries) GetPlaceByID(ctx context.Context, arg GetPlaceByIDParams) (Get
 	return i, err
 }
 
+const listNearbyPlaces = `-- name: ListNearbyPlaces :many
+SELECT
+    p.id,
+    p.name,
+    p.category,
+    p.description,
+    ST_Y(p.location::geometry)::float AS latitude,
+    ST_X(p.location::geometry)::float AS longitude,
+    COALESCE(upi.liked, FALSE) AS liked,
+    COALESCE(p.tags, '[]'::jsonb) AS tags,
+    p.opening_hours,
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
+    (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
+FROM place p
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $1::uuid
+WHERE ST_DWithin(
+    p.location::geography,
+    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography,
+    $4::float
+) AND COALESCE(upi.hidden, FALSE) = FALSE
+ORDER BY ST_Distance(
+    p.location::geography,
+    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography
+) ASC
+`
+
+type ListNearbyPlacesParams struct {
+	UserID       uuid.UUID
+	Lon          float64
+	Lat          float64
+	RadiusMeters float64
+}
+
+type ListNearbyPlacesRow struct {
+	ID           uuid.UUID
+	Name         string
+	Category     string
+	Description  sql.NullString
+	Latitude     float64
+	Longitude    float64
+	Liked        bool
+	Tags         pqtype.NullRawMessage
+	OpeningHours sql.NullString
+	LikeCount    int32
+	SaveCount    int32
+	HideCount    int32
+}
+
+func (q *Queries) ListNearbyPlaces(ctx context.Context, arg ListNearbyPlacesParams) ([]ListNearbyPlacesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNearbyPlaces,
+		arg.UserID,
+		arg.Lon,
+		arg.Lat,
+		arg.RadiusMeters,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListNearbyPlacesRow
+	for rows.Next() {
+		var i ListNearbyPlacesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Category,
+			&i.Description,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Liked,
+			&i.Tags,
+			&i.OpeningHours,
+			&i.LikeCount,
+			&i.SaveCount,
+			&i.HideCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPlaceImagesByPlaceIDs = `-- name: ListPlaceImagesByPlaceIDs :many
 SELECT place_id, url, description, is_primary
 FROM place_image
@@ -194,27 +284,7 @@ func (q *Queries) ListPlaceImagesByPlaceIDs(ctx context.Context, placeIds []uuid
 	return items, nil
 }
 
-const listPlaces = `-- name: ListPlaces :many
-WITH user_places AS (
-    SELECT p2.id, p2.category, p2.tags
-    FROM place p2
-    JOIN user_place_interactions upi ON p2.id = upi.place_id AND upi.user_id = $3::uuid AND upi.liked = true
-    UNION ALL
-    SELECT p2.id, p2.category, p2.tags
-    FROM place p2
-    JOIN collection_place cp ON p2.id = cp.place_id
-    JOIN collections c ON c.id = cp.collection_id AND c.user_id = $3::uuid
-),
-user_preferred_categories AS (
-    SELECT DISTINCT category FROM user_places
-),
-user_preferred_tags AS (
-    SELECT t.tag, COUNT(*)::int AS weight
-    FROM user_places
-    CROSS JOIN LATERAL jsonb_array_elements_text(COALESCE(user_places.tags, '[]'::jsonb)) AS t(tag)
-    WHERE t.tag <> ''
-    GROUP BY t.tag
-)
+const listPlacesByCategory = `-- name: ListPlacesByCategory :many
 SELECT
     p.id,
     p.name,
@@ -227,78 +297,59 @@ SELECT
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
     (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
-    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
-    (CASE WHEN EXISTS (SELECT 1 FROM user_preferred_categories upc WHERE upc.category = p.category) THEN 1 ELSE 0 END)::int AS category_match,
-    COALESCE((
-        SELECT SUM(upt.weight)::float
-        FROM user_preferred_tags upt
-        WHERE upt.tag IN (SELECT jsonb_array_elements_text(COALESCE(p.tags, '[]'::jsonb)))
-    ), 0)::float AS tag_match_score
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
 FROM place p
-LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $1::uuid
 WHERE ST_DWithin(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography,
-    $6::float
+    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography,
+    $4::float
 ) AND COALESCE(upi.hidden, FALSE) = FALSE
-ORDER BY (
-    ST_Distance(
-        p.location::geography,
-        ST_SetSRID(ST_MakePoint($4::float, $5::float), 4326)::geography
-    ) / (1.0
-        + 0.2 * (CASE WHEN EXISTS (SELECT 1 FROM user_preferred_categories upc WHERE upc.category = p.category) THEN 1 ELSE 0 END)::float
-        + 0.4 * LEAST(1.0, COALESCE((
-            SELECT SUM(upt.weight)::float
-            FROM user_preferred_tags upt
-            WHERE upt.tag IN (SELECT jsonb_array_elements_text(COALESCE(p.tags, '[]'::jsonb)))
-        ), 0) / 5.0))
+AND p.category = $5
+ORDER BY ST_Distance(
+    p.location::geography,
+    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography
 ) ASC
-LIMIT $1 OFFSET $2
 `
 
-type ListPlacesParams struct {
-	Limit        int32
-	Offset       int32
+type ListPlacesByCategoryParams struct {
 	UserID       uuid.UUID
 	Lon          float64
 	Lat          float64
 	RadiusMeters float64
+	Category     string
 }
 
-type ListPlacesRow struct {
-	ID            uuid.UUID
-	Name          string
-	Category      string
-	Description   sql.NullString
-	Latitude      float64
-	Longitude     float64
-	Liked         bool
-	Tags          pqtype.NullRawMessage
-	OpeningHours  sql.NullString
-	LikeCount     int32
-	SaveCount     int32
-	HideCount     int32
-	CategoryMatch int32
-	TagMatchScore float64
+type ListPlacesByCategoryRow struct {
+	ID           uuid.UUID
+	Name         string
+	Category     string
+	Description  sql.NullString
+	Latitude     float64
+	Longitude    float64
+	Liked        bool
+	Tags         pqtype.NullRawMessage
+	OpeningHours sql.NullString
+	LikeCount    int32
+	SaveCount    int32
+	HideCount    int32
 }
 
-// Heuristic personalized ranking: prefer places that match user's liked/saved by category and by tags (type/similarity).
-func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListPlacesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listPlaces,
-		arg.Limit,
-		arg.Offset,
+func (q *Queries) ListPlacesByCategory(ctx context.Context, arg ListPlacesByCategoryParams) ([]ListPlacesByCategoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPlacesByCategory,
 		arg.UserID,
 		arg.Lon,
 		arg.Lat,
 		arg.RadiusMeters,
+		arg.Category,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListPlacesRow
+	var items []ListPlacesByCategoryRow
 	for rows.Next() {
-		var i ListPlacesRow
+		var i ListPlacesByCategoryRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -312,8 +363,6 @@ func (q *Queries) ListPlaces(ctx context.Context, arg ListPlacesParams) ([]ListP
 			&i.LikeCount,
 			&i.SaveCount,
 			&i.HideCount,
-			&i.CategoryMatch,
-			&i.TagMatchScore,
 		); err != nil {
 			return nil, err
 		}
