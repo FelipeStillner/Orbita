@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Place } from "@types";
 import { Button, Badge, Text } from "@components";
 import { LikeIcon, LikedIcon, SaveIcon, SavedIcon, MapIcon } from "@assets/icons";
+import { getCategoryLabel } from "@helpers/formatCategoryLabel";
 
 interface Props {
   place: Place;
@@ -125,7 +126,7 @@ export default function PlaceDetailView({
               <Button size="sm" variant="default" onClick={onOpenMap}>
                 <MapIcon />
               </Button>
-              <Badge>{place.category}</Badge>
+              <Badge>{getCategoryLabel(place.category)}</Badge>
             </div>
             {place.opening_hours && (
               <Text variant="body-sm" muted className="block mt-1">
