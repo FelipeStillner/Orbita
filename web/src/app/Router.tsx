@@ -1,9 +1,10 @@
-import { createBrowserRouter } from "react-router-dom";
-import HomePage from "../features/home/HomePage";
-import FeedPage from "../features/feed/FeedPage";
-import CollectionsPage from "../features/collections/CollectionsPage";
-import { Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useAuth } from "@context/AuthContext";
+import AppLayout from "./AppLayout";
+import HomePage from "../features/home/HomePage";
+import PlacePage from "../features/place/PlacePage";
+import CollectionsPage from "../features/collections/CollectionsPage";
+import ProfilePage from "../features/profile/ProfilePage";
 import AuthPage from "../features/auth/AuthPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -18,14 +19,16 @@ export const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <ProtectedRoute><HomePage /></ProtectedRoute>,
-  },
-  {
-    path: "/feed",
-    element: <ProtectedRoute><FeedPage /></ProtectedRoute>,
-  },
-  {
-    path: "/collections",
-    element: <ProtectedRoute><CollectionsPage /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "place/:id", element: <PlacePage /> },
+      { path: "collections", element: <CollectionsPage /> },
+      { path: "profile", element: <ProfilePage /> },
+    ],
   },
 ]);

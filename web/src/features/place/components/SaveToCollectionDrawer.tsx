@@ -6,14 +6,19 @@ import {
   addPlaceToCollection,
   removePlaceFromCollection,
 } from "@api";
-import type { Place } from "../types";
+import type { Place } from "@types";
 import { Button, Text, Drawer, Input } from "@components";
 import { PlusIcon, CheckIcon } from "@assets/icons";
+
+export interface PlaceCollectionItem {
+  id: string;
+  name: string;
+}
 
 interface SaveToCollectionDrawerProps {
   place: Place | null;
   onClose: () => void;
-  onSaved?: () => void;
+  onSaved?: (collections: PlaceCollectionItem[]) => void;
 }
 
 export default function SaveToCollectionDrawer({
@@ -42,19 +47,23 @@ export default function SaveToCollectionDrawer({
     mutationFn: (name: string) => createCollection(name),
     onSuccess: (newCol) => {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
-      setSelectedIds((prev) => new Set(prev).add(newCol.id));
+      setSelectedIds((prev) => {
+        const next = new Set(prev).add(newCol.id);
+        const fromList = collections.filter((c) => next.has(c.id)).map((c) => ({ id: c.id, name: c.name }));
+        const withNew = fromList.some((c) => c.id === newCol.id) ? fromList : [...fromList, { id: newCol.id, name: newCol.name }];
+        onSaved?.(withNew);
+        return next;
+      });
       setNewCollectionName("");
     },
   });
 
   const handleToggle = async (collectionId: string) => {
     const isChecked = selectedIds.has(collectionId);
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (isChecked) next.delete(collectionId);
-      else next.add(collectionId);
-      return next;
-    });
+    const nextIds = new Set(selectedIds);
+    if (isChecked) nextIds.delete(collectionId);
+    else nextIds.add(collectionId);
+    setSelectedIds(nextIds);
     if (!placeId) return;
     try {
       if (isChecked) {
@@ -63,7 +72,10 @@ export default function SaveToCollectionDrawer({
         await addPlaceToCollection(collectionId, placeId);
       }
       queryClient.invalidateQueries({ queryKey: ["feed"] });
-      onSaved?.();
+      const updatedCollections = collections
+        .filter((c) => nextIds.has(c.id))
+        .map((c) => ({ id: c.id, name: c.name }));
+      onSaved?.(updatedCollections);
     } catch {
       setSelectedIds((prev) => {
         const next = new Set(prev);

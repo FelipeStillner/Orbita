@@ -1,4 +1,4 @@
-import { useCollectionsViewModel } from "./hooks/useCollectionsViewModel";
+import { useCollectionsViewModel } from "./useCollectionsViewModel";
 import CollectionsListView from "./components/CollectionsListView";
 import CollectionPlacesPanel from "./components/CollectionPlacesPanel";
 

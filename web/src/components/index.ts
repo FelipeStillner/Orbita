@@ -5,3 +5,6 @@ export { Badge } from "./Badge";
 export { Card } from "./Card";
 export { Drawer } from "./Drawer";
 export { Input } from "./Input";
+export { BottomBar } from "./BottomBar";
+export { LoadingPage } from "./LoadingPage";
+export { ErrorPage } from "./ErrorPage";

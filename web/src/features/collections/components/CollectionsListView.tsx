@@ -3,7 +3,7 @@ import { Button, Page, Text, Input } from "@components";
 import { BackIcon, PlusIcon } from "@assets/icons";
 import CollectionCard from "./CollectionCard";
 import type { Collection } from "@api";
-import type { CollectionsViewModel } from "../hooks/useCollectionsViewModel";
+import type { CollectionsViewModel } from "../useCollectionsViewModel";
 
 interface CollectionsListViewProps {
   vm: CollectionsViewModel;

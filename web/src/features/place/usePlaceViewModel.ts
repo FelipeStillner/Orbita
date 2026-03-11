@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useGeolocation } from "@hooks/useGeolocation";
-import { fetchPlaces, sendInteraction } from "../api";
-import type { Place, PlacesResponse } from "../types";
+import { fetchPlaces } from "@api";
+import { sendInteraction } from "./api";
+import type { Place, PlacesResponse } from "@types";
 
-export function useFeedViewModel() {
+export function usePlaceViewModel() {
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
   const queryClient = useQueryClient();

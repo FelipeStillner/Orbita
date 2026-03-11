@@ -1,10 +1,10 @@
-export interface Image {
+interface Image {
   url: string;
   description: string;
   is_primary: boolean;
 }
 
-export interface PlaceCollection {
+interface PlaceCollection {
   id: string;
   name: string;
 }

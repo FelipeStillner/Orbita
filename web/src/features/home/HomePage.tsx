@@ -1,54 +1,71 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@context/AuthContext";
-import { Button, Page, Text } from "@components";
+import { Link } from "react-router-dom";
+import { useHomeViewModel } from "./useHomeViewModel";
+import CategorySection from "./components/CategorySection";
+import { Text, LoadingPage, ErrorPage, Button } from "@components";
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { viewState, categories, loadMoreRef, isFetchingNextPage, scrollRef, isReady } =
+    useHomeViewModel();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/auth");
-  };
+  if (viewState === "ERROR")
+    return (
+      <ErrorPage
+        title="Location Required"
+        description="We need your location to show you the best places nearby. Please enable location access in your browser settings."
+        action={
+          <Link to="/">
+            <Button size="md" className="w-full">
+              Go Back Home
+            </Button>
+          </Link>
+        }
+      />
+    );
+  if (viewState === "LOADING")
+    return <LoadingPage message="Finding the best spots..." />;
 
   return (
-    <Page className="space-y-8">
-      <Button
-        variant="ghost"
-        size="sm"
-        rounded={false}
-        onClick={handleLogout}
-        className="absolute top-8 right-8"
-      >
-        Logout
-      </Button>
-
-      <Text variant="h1">
+    <div
+      ref={scrollRef}
+      className={`
+        no-scrollbar h-dvh w-screen bg-black overflow-y-auto overflow-x-hidden
+        transition-opacity duration-500
+        ${isReady ? "opacity-100" : "opacity-0"}
+      `}
+    >
+      <Text variant="h1" className="text-white p-6">
         Orbita
       </Text>
-      <Text variant="body">
-        Your personal guide to discovering extraordinary places
-      </Text>
 
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
-        <Button
-          size="lg"
-          onClick={() => navigate("/feed")}
-          rounded={false}
-          className="flex-1"
-        >
-          Start Exploring
-        </Button>
-        <Button
-          variant="ghost"
-          size="lg"
-          onClick={() => navigate("/collections")}
-          rounded={false}
-          className="flex-1"
-        >
-          My Collections
-        </Button>
+      <div className="space-y-2">
+        {categories.length === 0 && !isFetchingNextPage ? (
+          <div className="px-6 py-12">
+            <Text variant="body" muted>
+              No places nearby yet. Check back later.
+            </Text>
+          </div>
+        ) : (
+          categories.map(({ category, places }) => (
+            <CategorySection
+              key={category}
+              category={category}
+              places={places}
+            />
+          ))
+        )}
       </div>
-    </Page>
+
+      <div
+        ref={loadMoreRef}
+        className="h-20 w-full flex items-center justify-center"
+      >
+        {isFetchingNextPage && (
+          <div className="glass-dark rounded-full px-6 py-3 flex items-center gap-3">
+            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <Text variant="body-sm">Loading more...</Text>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
