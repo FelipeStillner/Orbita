@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { PlacesResponse } from "@place";
+import type { PlacesResponse } from "@types";
 import { getAuthHeaders } from "@helpers/getAuthHeaders";
 
 export const fetchPlaces = async (

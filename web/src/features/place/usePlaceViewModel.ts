@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Place } from "@types";
+import { fetchPlace } from "@api";
 import { sendInteraction } from "./api";
 
 export function usePlaceViewModel() {
@@ -11,15 +12,24 @@ export function usePlaceViewModel() {
   const queryClient = useQueryClient();
   const placeFromState = (location.state as { place?: Place } | null)?.place;
 
-  const [place, setPlace] = useState<Place | null>(placeFromState ?? null);
-  const [saveDrawerOpen, setSaveDrawerOpen] = useState(false);
+  const {
+    data: place,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["place", id],
+    queryFn: () => fetchPlace(id!),
+    enabled: !!id,
+    initialData: placeFromState && placeFromState.id === id ? placeFromState : undefined,
+  });
 
-  const isInvalid = !id || !place || place.id !== id;
+  const isInvalid = !id || isError;
 
   useEffect(() => {
     if (isInvalid) navigate("/", { replace: true });
   }, [isInvalid, navigate]);
 
+  const [saveDrawerOpen, setSaveDrawerOpen] = useState(false);
   const handleBack = () => navigate("/");
 
   const handleOpenMap = () => {
@@ -31,22 +41,29 @@ export function usePlaceViewModel() {
   const handleLike = async () => {
     if (!place) return;
     const nextLiked = !place.liked;
-    setPlace((p) => (p ? { ...p, liked: nextLiked } : p));
+    queryClient.setQueryData<Place>(["place", id], (old) =>
+      old ? { ...old, liked: nextLiked } : old
+    );
     await sendInteraction(place.id, { liked: nextLiked, hidden: false });
+    queryClient.invalidateQueries({ queryKey: ["place", id] });
     queryClient.invalidateQueries({ queryKey: ["feed"] });
   };
 
   const handleSaveClick = () => setSaveDrawerOpen(true);
 
   const handleSaved = (collections: { id: string; name: string }[]) => {
-    setPlace((p) => (p ? { ...p, collections } : p));
+    queryClient.setQueryData<Place>(["place", id], (old) =>
+      old ? { ...old, collections } : old
+    );
+    queryClient.invalidateQueries({ queryKey: ["place", id] });
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["collections"] });
   };
 
   return {
-    place,
+    place: place ?? null,
     isInvalid,
+    isLoading,
     saveDrawerOpen,
     setSaveDrawerOpen,
     handleBack,
