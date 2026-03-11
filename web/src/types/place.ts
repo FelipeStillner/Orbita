@@ -26,8 +26,15 @@ export interface Place {
   hide_count?: number;
 }
 
+export interface PlaceListItem {
+  id: string;
+  name: string;
+  category: string;
+  images: Image[];
+}
+
 export interface PlacesResponse {
-  places: Place[];
+  places: PlaceListItem[];
   meta: {
     page: number;
     limit: number;

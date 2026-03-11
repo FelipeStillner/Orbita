@@ -2,12 +2,12 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRef, useEffect, useLayoutEffect, useState } from "react";
 import { useGeolocation } from "@hooks/useGeolocation";
 import { fetchPlaces } from "@api";
-import type { Place, PlacesResponse } from "@types";
+import type { PlaceListItem, PlacesResponse } from "@types";
 
 const PLACES_PER_PAGE = 20;
 
-function groupPlacesByCategory(places: Place[]): { category: string; places: Place[] }[] {
-  const byCategory = new Map<string, Place[]>();
+function groupPlacesByCategory(places: PlaceListItem[]): { category: string; places: PlaceListItem[] }[] {
+  const byCategory = new Map<string, PlaceListItem[]>();
   for (const place of places) {
     const cat = place.category || "Other";
     if (!byCategory.has(cat)) byCategory.set(cat, []);

@@ -21,26 +21,11 @@ type listPlaceImage struct {
 	IsPrimary   bool   `json:"is_primary"`
 }
 
-type listCollectionItem struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type listPlaceItem struct {
-	ID           string               `json:"id"`
-	Name         string               `json:"name"`
-	Latitude     float64              `json:"latitude"`
-	Longitude    float64              `json:"longitude"`
-	Images       []listPlaceImage     `json:"images"`
-	Description  string               `json:"description"`
-	Category     string               `json:"category"`
-	Liked        bool                 `json:"liked"`
-	Collections  []listCollectionItem `json:"collections"`
-	Tags         []string             `json:"tags,omitempty"`
-	OpeningHours string               `json:"opening_hours,omitempty"`
-	LikeCount    int32                `json:"like_count"`
-	SaveCount    int32                `json:"save_count"`
-	HideCount    int32                `json:"hide_count"`
+	ID       string           `json:"id"`
+	Name     string           `json:"name"`
+	Category string           `json:"category"`
+	Images   []listPlaceImage `json:"images"`
 }
 
 type listResponse struct {
@@ -81,25 +66,11 @@ func (h *handler) handleList(w http.ResponseWriter, r *http.Request) {
 				IsPrimary:   img.IsPrimary,
 			}
 		}
-		collections := make([]listCollectionItem, len(p.Collections))
-		for j, c := range p.Collections {
-			collections[j] = listCollectionItem{ID: c.ID.String(), Name: c.Name}
-		}
 		items = append(items, listPlaceItem{
-			ID:           p.ID.String(),
-			Name:         p.Name,
-			Latitude:     p.Latitude,
-			Longitude:    p.Longitude,
-			Images:       images,
-			Description:  p.Description,
-			Category:     p.Category,
-			Liked:        p.Liked,
-			Collections:  collections,
-			Tags:         p.Tags,
-			OpeningHours: p.OpeningHours,
-			LikeCount:    p.LikeCount,
-			SaveCount:    p.SaveCount,
-			HideCount:    p.HideCount,
+			ID:       p.ID.String(),
+			Name:     p.Name,
+			Category: p.Category,
+			Images:   images,
 		})
 	}
 	page := int(req.Offset/req.Limit) + 1

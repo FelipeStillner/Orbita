@@ -10,6 +10,34 @@ import (
 	"github.com/google/uuid"
 )
 
+type getPlaceCollectionItem struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type getPlaceImage struct {
+	URL         string `json:"url"`
+	Description string `json:"description"`
+	IsPrimary   bool   `json:"is_primary"`
+}
+
+type getPlaceItem struct {
+	ID           string                   `json:"id"`
+	Name         string                   `json:"name"`
+	Latitude     float64                  `json:"latitude"`
+	Longitude    float64                  `json:"longitude"`
+	Images       []getPlaceImage          `json:"images"`
+	Description  string                   `json:"description"`
+	Category     string                   `json:"category"`
+	Liked        bool                     `json:"liked"`
+	Collections  []getPlaceCollectionItem `json:"collections"`
+	Tags         []string                 `json:"tags,omitempty"`
+	OpeningHours string                   `json:"opening_hours,omitempty"`
+	LikeCount    int32                    `json:"like_count"`
+	SaveCount    int32                    `json:"save_count"`
+	HideCount    int32                    `json:"hide_count"`
+}
+
 func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromRequest(w, r)
 	if !ok {
@@ -38,19 +66,19 @@ func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	images := make([]listPlaceImage, len(p.Images))
+	images := make([]getPlaceImage, len(p.Images))
 	for j, img := range p.Images {
-		images[j] = listPlaceImage{
+		images[j] = getPlaceImage{
 			URL:         img.URL,
 			Description: img.Description,
 			IsPrimary:   img.IsPrimary,
 		}
 	}
-	collections := make([]listCollectionItem, len(p.Collections))
+	collections := make([]getPlaceCollectionItem, len(p.Collections))
 	for j, c := range p.Collections {
-		collections[j] = listCollectionItem{ID: c.ID.String(), Name: c.Name}
+		collections[j] = getPlaceCollectionItem{ID: c.ID.String(), Name: c.Name}
 	}
-	item := listPlaceItem{
+	item := getPlaceItem{
 		ID:           p.ID.String(),
 		Name:         p.Name,
 		Latitude:     p.Latitude,

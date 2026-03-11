@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import type { Place } from "@types";
+import type { PlaceListItem } from "@types";
 import { Text } from "@components";
 
 interface Props {
-  place: Place;
+  place: PlaceListItem;
 }
 
 const PLACEHOLDER_IMAGE =
@@ -18,7 +18,6 @@ export default function PlaceCard({ place }: Props) {
   return (
     <Link
       to={`/place/${place.id}`}
-      state={{ place }}
       className="flex-shrink-0 w-[160px] sm:w-[200px] group block rounded-2xl overflow-hidden glass-medium border border-white/10 hover:glass-strong hover:border-white/20 transition-all duration-300"
     >
       <div

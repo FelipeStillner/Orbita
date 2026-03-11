@@ -1,11 +1,11 @@
-import type { Place } from "@types";
+import type { PlaceListItem } from "@types";
 import { Text } from "@components";
 import { getCategoryLabel } from "@helpers/formatCategoryLabel";
 import PlaceCard from "./PlaceCard";
 
 interface Props {
   category: string;
-  places: Place[];
+  places: PlaceListItem[];
 }
 
 export default function CategorySection({ category, places }: Props) {
