@@ -1,101 +1,58 @@
-import { useEffect, useRef } from "react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useGeolocation } from "@hooks/useGeolocation";
-import { fetchPlaces } from "@api";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Place } from "@types";
 import { sendInteraction } from "./api";
-import type { Place, PlacesResponse } from "@types";
 
 export function usePlaceViewModel() {
-  const { location, loading: locLoading, error: locError } = useGeolocation();
-
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const placeFromState = (location.state as { place?: Place } | null)?.place;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: placesLoading } =
-    useInfiniteQuery<PlacesResponse>({
-      queryKey: ["feed", location?.lat, location?.lng],
-      queryFn: ({ pageParam = 1 }) => {
-        if (!location) throw new Error("Location not ready");
-        return fetchPlaces(location.lat, location.lng, pageParam);
-      },
-      getNextPageParam: (lastPage, allPages) => {
-        const limit = 5;
-        if (lastPage.places.length < limit) return undefined;
-        return allPages.length + 1;
-      },
-      enabled: !!location && !locLoading && !locError,
-    });
+  const [place, setPlace] = useState<Place | null>(placeFromState ?? null);
+  const [saveDrawerOpen, setSaveDrawerOpen] = useState(false);
 
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isInvalid = !id || !place || place.id !== id;
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    });
+    if (isInvalid) navigate("/", { replace: true });
+  }, [isInvalid, navigate]);
 
-    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
+  const handleBack = () => navigate("/");
 
-  const places =
-    data?.pages.flatMap((page: PlacesResponse) => page.places) || [];
-
-  const handleOpenMap = (place: Place) => {
+  const handleOpenMap = () => {
+    if (!place) return;
     const url = `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`;
     window.open(url, "_blank");
   };
 
-  const handleInteraction = async (
-    place: Place,
-    action: "like" | "hide"
-  ) => {
-    const id = place.id;
-
-    switch (action) {
-      case "like":
-        await sendInteraction(id, { liked: !place.liked, hidden: false });
-        break;
-      case "hide":
-        queryClient.setQueryData(
-          ["feed", location?.lat, location?.lng],
-          (oldData: { pages: PlacesResponse[]; pageParams: unknown[] } | undefined) => {
-            if (!oldData) return oldData;
-
-            return {
-              ...oldData,
-              pages: oldData.pages.map((page) => ({
-                ...page,
-                places: page.places.filter(
-                  (p: Place) => p.id !== id
-                ),
-              })),
-            };
-          }
-        );
-
-        // Fire the API request in the background
-        await sendInteraction(id, { hidden: true, liked: false });
-        break;
-    }
+  const handleLike = async () => {
+    if (!place) return;
+    const nextLiked = !place.liked;
+    setPlace((p) => (p ? { ...p, liked: nextLiked } : p));
+    await sendInteraction(place.id, { liked: nextLiked, hidden: false });
+    queryClient.invalidateQueries({ queryKey: ["feed"] });
   };
 
-  let viewState: "LOADING" | "ERROR" | "SUCCESS" = "LOADING";
+  const handleSaveClick = () => setSaveDrawerOpen(true);
 
-  if (locError) {
-    viewState = "ERROR";
-  } else if (locLoading || (!!location && placesLoading)) {
-    viewState = "LOADING";
-  } else {
-    viewState = "SUCCESS";
-  }
+  const handleSaved = (collections: { id: string; name: string }[]) => {
+    setPlace((p) => (p ? { ...p, collections } : p));
+    queryClient.invalidateQueries({ queryKey: ["feed"] });
+    queryClient.invalidateQueries({ queryKey: ["collections"] });
+  };
 
   return {
-    viewState,
-    places,
-    loadMoreRef,
-    isFetchingNextPage,
+    place,
+    isInvalid,
+    saveDrawerOpen,
+    setSaveDrawerOpen,
+    handleBack,
     handleOpenMap,
-    handleInteraction,
+    handleLike,
+    handleSaveClick,
+    handleSaved,
   };
 }
