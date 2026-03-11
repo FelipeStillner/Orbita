@@ -3,6 +3,7 @@ package place
 import (
 	"context"
 	"encoding/json"
+	"sort"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
@@ -62,8 +63,21 @@ func (s *Service) ListCategories(ctx context.Context, userID uuid.UUID, lat, lon
 		}
 	}
 
+	categoryNames := make([]string, 0, len(byCategory))
+	for cat := range byCategory {
+		categoryNames = append(categoryNames, cat)
+	}
+	sort.Slice(categoryNames, func(i, j int) bool {
+		ni, nj := len(byCategory[categoryNames[i]]), len(byCategory[categoryNames[j]])
+		if ni != nj {
+			return ni > nj
+		}
+		return categoryNames[i] < categoryNames[j]
+	})
+
 	out := make([]CategoryPlaces, 0, len(byCategory))
-	for cat, list := range byCategory {
+	for _, cat := range categoryNames {
+		list := byCategory[cat]
 		places := make([]types.Result, 0, len(list))
 		for _, row := range list {
 			var images []types.PlaceImage
