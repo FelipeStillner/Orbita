@@ -4,33 +4,25 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapViewModel, type MapPlace } from "./useMapViewModel";
-import { Text, LoadingPage, ErrorPage, Button } from "@components";
+import { LoadingPage, ErrorPage, Button } from "@components";
 import { getCategoryLabel } from "@helpers/formatCategoryLabel";
 
-// Fix default marker icon with Vite/bundlers (broken paths otherwise)
-const defaultIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+// Place marker: minimal grayscale dot to match app design
+const placeMarkerIcon = L.divIcon({
+  className: "orbita-place-marker",
+  html: `<div class="orbita-marker-inner"></div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -12],
 });
-L.Marker.prototype.options.icon = defaultIcon;
 
+// User location: white/gray pulse to match grayscale theme
 const userLocationIcon = L.divIcon({
-  className: "user-location-pulse",
-  html: `<div style="
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: #3b82f6;
-    border: 3px solid white;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
-  "></div>`,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
+  className: "orbita-user-marker",
+  html: `<div class="orbita-user-marker-inner"></div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -12],
 });
 
 function MapFitBounds({
@@ -91,42 +83,32 @@ export default function MapPage() {
   const center: [number, number] = [location.lat, location.lng];
 
   return (
-    <div className="fixed inset-0 z-0 flex flex-col bg-dark">
-      <header className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3 safe-area-top glass-medium rounded-b-2xl border-b border-white/10">
-        <Text variant="h2" className="text-white font-semibold">
-          Map
-        </Text>
-        <Text variant="body-sm" muted>
-          {places.length} place{places.length !== 1 ? "s" : ""} nearby
-        </Text>
-      </header>
-
+    <div className="fixed inset-0 z-0 flex flex-col bg-black">
       <div
-        className={`flex-1 w-full mt-14 transition-opacity duration-300 ${mapReady ? "opacity-100" : "opacity-0"}`}
-        style={{ minHeight: "calc(100dvh - 3.5rem)" }}
+        className={`flex-1 w-full transition-opacity duration-500 ${mapReady ? "opacity-100" : "opacity-0"}`}
+        style={{ minHeight: "calc(100dvh - 4.5rem)" }}
       >
         <MapContainer
           center={center}
           zoom={14}
-          className="h-full w-full rounded-b-2xl"
-          style={{ minHeight: "calc(100dvh - 3.5rem)" }}
+          className="h-full w-full rounded-b-2xl orbita-map"
+          style={{ minHeight: "calc(100dvh - 4.5rem)" }}
           whenReady={() => setMapReady(true)}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+            url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png"
           />
           <Marker position={center} icon={userLocationIcon}>
             <Popup>
-              <Text variant="body-sm" className="font-medium">
-                You are here
-              </Text>
+              <span className="text-sm font-medium text-white/90">You are here</span>
             </Popup>
           </Marker>
           {places.map((place) => (
             <Marker
               key={place.id}
               position={[place.latitude, place.longitude]}
+              icon={placeMarkerIcon}
               eventHandlers={{
                 click: () => handleMarkerClick(place.id),
               }}
@@ -135,18 +117,18 @@ export default function MapPage() {
                 <div className="min-w-[160px]">
                   <Link
                     to={`/place/${place.id}`}
-                    className="block hover:opacity-90"
+                    className="block rounded-lg transition-opacity hover:opacity-90"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Text variant="body" className="font-semibold text-white">
+                    <p className="font-semibold text-white text-sm leading-tight">
                       {place.name}
-                    </Text>
-                    <Text variant="body-sm" muted>
+                    </p>
+                    <p className="text-white/60 text-xs mt-0.5">
                       {getCategoryLabel(place.category)}
-                    </Text>
-                    <Text variant="body-sm" className="text-white/80 mt-1">
+                    </p>
+                    <p className="text-white/80 text-xs mt-1.5">
                       Tap to view details →
-                    </Text>
+                    </p>
                   </Link>
                 </div>
               </Popup>
