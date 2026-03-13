@@ -16,14 +16,13 @@ db-schema:
 db-seed:
 	cat database/seeds/basic_data.sql | docker exec -i orbita_db psql -U orbita_user -d orbita_db
 
-# Reset everything (Stop -> Start -> Schema -> Seed)
+# Reset everything (Stop -> Start -> Schema)
 db-reset:
 	docker-compose down -v
 	docker-compose up -d
 	@echo "Waiting for DB to start..."
 	@sleep 3
 	make db-schema
-	make db-seed
 
 # --- Code Generation ---
 
