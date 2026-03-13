@@ -23,10 +23,12 @@ type listCategoriesCategory struct {
 }
 
 type listCategoriesPlace struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Category string `json:"category"`
-	Image    string `json:"image"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Category  string  `json:"category"`
+	Image     string  `json:"image"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 func (h *handler) handleListCategories(w http.ResponseWriter, r *http.Request) {
@@ -55,10 +57,12 @@ func (h *handler) handleListCategories(w http.ResponseWriter, r *http.Request) {
 				image = p.Images[0].URL
 			}
 			items = append(items, listCategoriesPlace{
-				ID:       p.ID.String(),
-				Name:     p.Name,
-				Category: p.Category,
-				Image:    image,
+				ID:        p.ID.String(),
+				Name:      p.Name,
+				Category:  p.Category,
+				Image:     image,
+				Latitude:  p.Latitude,
+				Longitude: p.Longitude,
 			})
 		}
 		sections = append(sections, listCategoriesCategory{Category: cp.Category, Places: items})

@@ -7,6 +7,7 @@ export default function AppLayout() {
   const location = useLocation();
 
   const isHome = location.pathname === "/";
+  const isMap = location.pathname === "/map";
   const isCollections = location.pathname === "/collections";
   const isProfile = location.pathname === "/profile";
 
@@ -33,9 +34,9 @@ export default function AppLayout() {
         <Button
           variant="ghost"
           size="lg"
-          disabled
+          onClick={() => navigate("/map")}
         >
-          <MapIcon />
+          <MapIcon filled={isMap} />
         </Button>
 
         <Button

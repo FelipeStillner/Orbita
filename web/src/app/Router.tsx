@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useAuth } from "@context/AuthContext";
 import AppLayout from "./AppLayout";
 import HomePage from "../features/home/HomePage";
+import MapPage from "../features/map/MapPage";
 import PlacePage from "../features/place/PlacePage";
 import CollectionsPage from "../features/collections/CollectionsPage";
 import ProfilePage from "../features/profile/ProfilePage";
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <HomePage /> },
+      { path: "map", element: <MapPage /> },
       { path: "place/:id", element: <PlacePage /> },
       { path: "collections", element: <CollectionsPage /> },
       { path: "profile", element: <ProfilePage /> },

@@ -31,6 +31,8 @@ export interface PlaceListItem {
   name: string;
   category: string;
   images: Image[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface PlacesListResponse {
