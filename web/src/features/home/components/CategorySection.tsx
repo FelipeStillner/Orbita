@@ -22,6 +22,7 @@ export default function CategorySection({ category, places }: Props) {
         {places.map((place) => (
           <PlaceCard key={place.id} place={place} />
         ))}
+        <div className="min-w-[380px] flex-shrink-0" />
       </div>
     </section>
   );

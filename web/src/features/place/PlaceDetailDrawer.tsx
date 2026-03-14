@@ -1,4 +1,5 @@
 import { Button } from "@components";
+import { CloseIcon } from "@assets/icons";
 import { usePlaceDetailViewModel } from "./usePlaceDetailViewModel";
 import PlaceDetailPanelContent from "./components/PlaceDetailPanelContent";
 import SaveToCollectionDrawer from "./components/SaveToCollectionDrawer";
@@ -59,7 +60,7 @@ export default function PlaceDetailDrawer({
         aria-modal="true"
         aria-label="Place details"
       >
-        {/* Return button - top left */}
+        {/* Close button - top left */}
         <div className="absolute top-4 left-4 z-10">
           <Button
             size="md"
@@ -67,18 +68,7 @@ export default function PlaceDetailDrawer({
             onClick={handleBack}
             aria-label="Close"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
+            <CloseIcon />
           </Button>
         </div>
 
