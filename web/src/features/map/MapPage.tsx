@@ -56,7 +56,7 @@ export default function MapPage() {
 
   const handleMarkerClick = useCallback(
     (id: string) => {
-      navigate(`/place/${id}`);
+      navigate(`/map?place=${id}`);
     },
     [navigate]
   );
@@ -116,7 +116,7 @@ export default function MapPage() {
               <Popup>
                 <div className="min-w-[160px]">
                   <Link
-                    to={`/place/${place.id}`}
+                    to={`/map?place=${place.id}`}
                     className="block rounded-lg transition-opacity hover:opacity-90"
                     onClick={(e) => e.stopPropagation()}
                   >

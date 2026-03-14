@@ -1,19 +1,43 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { BottomBar, Button } from "@components";
 import { MapIcon, HomeIcon, CollectionsIcon, ProfileIcon } from "@assets/icons";
+import PlaceDetailDrawer from "../features/place/PlaceDetailDrawer";
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const isHome = location.pathname === "/";
   const isMap = location.pathname === "/map";
   const isCollections = location.pathname === "/collections";
   const isProfile = location.pathname === "/profile";
 
+  const placeId = searchParams.get("place");
+  const showPlaceDrawer =
+    (isHome || isMap || isCollections) && !!placeId;
+
+  const closePlaceDrawer = () => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("place");
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
   return (
     <>
       <Outlet />
+      {showPlaceDrawer && (
+        <PlaceDetailDrawer
+          open={showPlaceDrawer}
+          placeId={placeId}
+          onClose={closePlaceDrawer}
+        />
+      )}
       <BottomBar>
         <Button
           variant="ghost"

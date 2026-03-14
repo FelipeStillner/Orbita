@@ -5,9 +5,10 @@ interface DrawerProps {
   onClose: () => void;
   children: ReactNode;
   title?: string;
+  compact?: boolean;
 }
 
-export function Drawer({ open, onClose, children, title }: DrawerProps) {
+export function Drawer({ open, onClose, children, title, compact }: DrawerProps) {
   useEffect(() => {
     if (!open) return;
     const handleEscape = (e: KeyboardEvent) => {
@@ -28,9 +29,9 @@ export function Drawer({ open, onClose, children, title }: DrawerProps) {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      {/* Panel - bottom sheet on mobile, centered modal on larger screens */}
+      {/* Panel - bottom sheet on mobile, centered modal on larger screens; compact = one third height */}
       <div
-        className="relative z-10 w-full max-h-[85vh] overflow-hidden rounded-t-3xl sm:rounded-3xl sm:max-w-md glass-dark animate-fade-slide-up flex flex-col"
+        className={`relative z-10 w-full overflow-hidden rounded-t-3xl sm:rounded-3xl sm:max-w-md glass-dark animate-fade-slide-up flex flex-col ${compact ? "max-h-[33dvh]" : "max-h-[85vh]"}`}
         role="dialog"
         aria-modal="true"
         aria-label={title ?? "Drawer"}

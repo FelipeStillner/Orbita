@@ -93,7 +93,7 @@ export default function SaveToCollectionDrawer({
   };
 
   return (
-    <Drawer open={open} onClose={onClose} title="Save to collection">
+    <Drawer open={open} onClose={onClose} title="Save to collection" compact>
       <div className="px-6 pt-2 pb-4 space-y-3">
         {/* List of collections */}
         <div className="space-y-2">

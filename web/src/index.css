@@ -179,6 +179,37 @@
     animation: fade-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Slide in from right (e.g. place drawer panel) */
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0.8;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-slide-out-right {
+    animation: slide-out-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
   /* Subtle pulse - minimal */
   @keyframes pulse-subtle {
 
