@@ -1,7 +1,7 @@
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useQuery, useQueries, useMutation } from "@tanstack/react-query";
 import { useRef, useLayoutEffect, useState, useMemo } from "react";
 import { useGeolocation } from "@hooks/useGeolocation";
-import { fetchListCategories, fetchListPlaces } from "@api";
+import { fetchListCategories, fetchListPlaces, fetchSearchPlaces } from "@api";
 import type { PlaceListItem } from "@types";
 
 export function useHomeViewModel() {
@@ -31,6 +31,16 @@ export function useHomeViewModel() {
       },
       enabled: !!location && !!category,
     })),
+  });
+
+  const searchPlacesMutation = useMutation({
+    mutationFn: async () => {
+      if (!location) throw new Error("Location not ready");
+      return fetchSearchPlaces(location.lat, location.lng);
+    },
+    onSuccess: (data) => {
+      console.log("Search places response", data);
+    },
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,5 +73,7 @@ export function useHomeViewModel() {
     categories,
     scrollRef,
     isReady,
+    searchNearby: () => searchPlacesMutation.mutate(),
+    searchLoading: searchPlacesMutation.isPending,
   };
 }

@@ -23,3 +23,34 @@ export const fetchListPlaces = async (
   });
   return data;
 };
+
+type SearchPlaceItem = {
+  name: string;
+  category: string;
+  latitude: number;
+  longitude: number;
+  tags?: string[];
+  opening_hours?: string;
+};
+
+type SearchPlacesResponse = {
+  places: SearchPlaceItem[];
+};
+
+export const fetchSearchPlaces = async (lat: number, lng: number, size?: number) => {
+  const params: Record<string, number> = {
+    lat,
+    lon: lng,
+  };
+
+  if (typeof size === "number" && size > 0) {
+    params.size = size;
+  }
+
+  const { data } = await axios.get<SearchPlacesResponse>(`/api/places/search`, {
+    params,
+    headers: getAuthHeaders(),
+  });
+
+  return data;
+};

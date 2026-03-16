@@ -4,7 +4,8 @@ import CategorySection from "./components/CategorySection";
 import { Text, LoadingPage, ErrorPage, Button } from "@components";
 
 export default function HomePage() {
-  const { viewState, categories, scrollRef, isReady } = useHomeViewModel();
+  const { viewState, categories, scrollRef, isReady, searchNearby, searchLoading } =
+    useHomeViewModel();
 
   if (viewState === "ERROR")
     return (
@@ -32,9 +33,19 @@ export default function HomePage() {
         ${isReady ? "opacity-100" : "opacity-0"}
       `}
     >
-      <Text variant="h1" className="text-white p-6">
-        Orbita
-      </Text>
+      <div className="flex items-center justify-between p-6">
+        <Text variant="h1" className="text-white">
+          Orbita
+        </Text>
+        <Button
+          size="md"
+          onClick={searchNearby}
+          disabled={searchLoading}
+          rounded={false}
+        >
+          Search nearby
+        </Button>
+      </div>
 
       <div className="space-y-2">
         {categories.length === 0 ? (
