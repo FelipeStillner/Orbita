@@ -19,5 +19,6 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.Handle("GET /api/places/{id}", auth.AuthMiddleware(http.HandlerFunc(h.handleGet)))
 	router.Handle("GET /api/places/home", auth.AuthMiddleware(http.HandlerFunc(h.handleListCategories)))
 	router.Handle("GET /api/places", auth.AuthMiddleware(http.HandlerFunc(h.handleListPlaces)))
+	router.Handle("GET /api/places/search", auth.AuthMiddleware(http.HandlerFunc(h.handleSearchPlaces)))
 	router.Handle("POST /api/places/{id}/interaction", auth.AuthMiddleware(http.HandlerFunc(h.handleUpsertInteraction)))
 }

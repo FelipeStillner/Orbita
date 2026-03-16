@@ -10,10 +10,6 @@ import (
 )
 
 func (s *Service) ListPlaces(ctx context.Context, userID uuid.UUID, lat, long float64, category string) ([]types.Result, error) {
-	if err := s.ensureAreaScanned(ctx, lat, long); err != nil {
-		return nil, err
-	}
-
 	rows, err := s.queries.ListPlacesByCategory(ctx, database.ListPlacesByCategoryParams{
 		UserID:       userID,
 		Lon:          long,

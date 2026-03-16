@@ -1,7 +1,6 @@
 package osm
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,32 +8,35 @@ import (
 	"strings"
 
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
+	h "github.com/FelipeStillner/Orbita/internal/shared/helpers"
 )
 
 const overpassUserAgent = "OrbitaPlaceApp/1.0 (https://github.com/FelipeStillner/Orbita)"
 
-var overpassEndpoints = []string{
-	"https://overpass-api.de/api/interpreter",
-	"https://overpass.kumi.systems/api/interpreter",
-}
+var overpassEndpoints = "https://overpass-api.de/api/interpreter"
 
-func (c *placeProvider) FetchPlaces(lat, long float64, radiusMeters int) ([]types.Place, error) {
-	query := fmt.Sprintf(templateQuery, radiusMeters, lat, long)
-	body := url.Values{"data": {query}}.Encode()
+const templateQueryBbox = `
+	[out:json][timeout:60];
+	(
+	    nwr["tourism"~"museum|gallery|viewpoint|attraction|zoo|theme_park|aquarium"]["wikidata"](%[1]f,%[2]f,%[3]f,%[4]f);
 
-	var lastErr error
-	for _, baseURL := range overpassEndpoints {
-		places, err := c.fetchPlacesFrom(baseURL, body)
-		if err == nil {
-			return places, nil
-		}
-		lastErr = err
-	}
-	return nil, fmt.Errorf("all Overpass endpoints failed: %w", lastErr)
-}
+		nwr ["amenity"v"theatre|arts_centre|planetarium"]["wikidata"](%[1]f,%[2]f,%[3]f,%[4]f);
 
-func (c *placeProvider) fetchPlacesFrom(baseURL, formBody string) ([]types.Place, error) {
-	req, err := http.NewRequest(http.MethodPost, baseURL, strings.NewReader(formBody))
+		nwr["historic"]["wikidata"](%[1]f,%[2]f,%[3]f,%[4]f);
+
+		nwr ["building"="cathedral"]["wikidata"](%[1]f,%[2]f,%[3]f,%[4]f);
+
+		nwr ["place"="square"]["wikidata"](%[1]f,%[2]f,%[3]f,%[4]f);
+	);
+	out center;
+`
+
+func (c *placeProvider) FetchPlaces(latS, lonW, latN, lonE float64) ([]types.Place, error) {
+	query := fmt.Sprintf(templateQueryBbox, latS, lonW, latN, lonE)
+	fmt.Println(query)
+	reqBody := url.Values{"data": {query}}.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, overpassEndpoints, strings.NewReader(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -47,109 +49,20 @@ func (c *placeProvider) fetchPlacesFrom(baseURL, formBody string) ([]types.Place
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("overpass read body: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("overpass returned %d: %s", resp.StatusCode, truncate(string(body), 300))
+		return nil, fmt.Errorf("overpass returned %d: %s", resp.StatusCode, h.Truncate(string(resBody), 300))
 	}
-	if len(body) > 0 && body[0] != '{' && body[0] != '[' {
-		return nil, fmt.Errorf("overpass returned non-JSON: %s", truncate(string(body), 300))
+	if len(resBody) > 0 && resBody[0] != '{' && resBody[0] != '[' {
+		return nil, fmt.Errorf("overpass returned non-JSON: %s", h.Truncate(string(resBody), 300))
 	}
 
-	var result osmResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, fmt.Errorf("overpass invalid JSON: %w", err)
+	places, err := c.parsePlaces(resBody)
+	if err != nil {
+		return nil, fmt.Errorf("overpass parse places: %w", err)
 	}
-	return toPlaces(&result), nil
+	return places, nil
 }
-
-func truncate(s string, max int) string {
-	s = strings.TrimSpace(s)
-	if len(s) <= max {
-		return s
-	}
-	return s[:max] + "..."
-}
-
-var osmTagKeys = []string{"amenity", "tourism", "historic", "cuisine", "leisure", "shop"}
-
-func toPlaces(osmResp *osmResponse) []types.Place {
-	var places []types.Place
-
-	for _, e := range osmResp.Elements {
-		name := e.Tags["name"]
-		if name == "" {
-			continue
-		}
-
-		lat := e.Lat
-		lon := e.Lon
-
-		if lat == 0 && lon == 0 && e.Center != nil {
-			lat = e.Center.Lat
-			lon = e.Center.Lon
-		}
-
-		if lat == 0 && lon == 0 {
-			continue
-		}
-
-		category := "General"
-		if t, ok := e.Tags["tourism"]; ok {
-			category = t
-		} else if a, ok := e.Tags["amenity"]; ok {
-			category = a
-		} else if h, ok := e.Tags["historic"]; ok {
-			category = h
-		}
-
-		tags := tagsFromElement(e.Tags)
-		openingHours := e.Tags["opening_hours"]
-
-		places = append(places, types.Place{
-			Name:         name,
-			Description:  "Imported from OpenStreetMap",
-			Category:     category,
-			Lat:          lat,
-			Long:         lon,
-			WikidataID:   e.Tags["wikidata"],
-			Tags:         tags,
-			OpeningHours: openingHours,
-		})
-	}
-
-	return places
-}
-
-func tagsFromElement(tags map[string]string) []string {
-	var out []string
-	for _, key := range osmTagKeys {
-		if v, ok := tags[key]; ok && v != "" {
-			out = append(out, key+":"+v)
-		}
-	}
-	return out
-}
-
-const templateQuery = `
-	[out:json][timeout:25];
-	(
-	  // --- TOURISM & ARTS ---
-	  nwr["tourism"~"museum|gallery|viewpoint|attraction|zoo|theme_park|aquarium"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
-
-	  // --- PERFORMING ARTS ---
-	  nwr["amenity"~"theatre|arts_centre|planetarium"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
-
-	  // --- HISTORY & MONUMENTS ---
-	  nwr["historic"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
-
-	  // --- RELIGION ---
-	  nwr["building"="cathedral"](around:%[1]d,%[2]f,%[3]f);
-
-	  // --- PUBLIC SPACES ---
-	  nwr["place"="square"]["wikidata"](around:%[1]d,%[2]f,%[3]f);
-	);
-	out center;
-`

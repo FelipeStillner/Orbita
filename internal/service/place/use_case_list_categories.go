@@ -19,10 +19,6 @@ type CategoryPlaces struct {
 }
 
 func (s *Service) ListCategories(ctx context.Context, userID uuid.UUID, lat, long float64) ([]CategoryPlaces, error) {
-	if err := s.ensureAreaScanned(ctx, lat, long); err != nil {
-		return nil, err
-	}
-
 	rows, err := s.queries.ListNearbyPlaces(ctx, database.ListNearbyPlacesParams{
 		UserID:       userID,
 		Lon:          long,
