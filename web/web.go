@@ -5,7 +5,7 @@ import (
 	"io/fs"
 )
 
-//go:embed dist/*
+//go:embed dist/* dist/assets/*
 var distFS embed.FS
 
 // GetFileSystem returns the embedded filesystem stripped of the "dist" prefix
