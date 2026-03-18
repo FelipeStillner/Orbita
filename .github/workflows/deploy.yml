@@ -80,6 +80,9 @@ jobs:
     needs: [build_backend]
 
     steps:
+      - name: Generate release id
+        run: echo "RELEASE_ID=$(date -u +%Y%m%d%H%M%S)" >> "$GITHUB_ENV"
+
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
@@ -96,9 +99,8 @@ jobs:
           script: |
             bash -lc '
               set -euxo pipefail
-              release_dir="$HOME/Orbita/releases/$(date +%Y%m%d%H%M%S)"
+              release_dir="$HOME/Orbita/releases/${{ env.RELEASE_ID }}"
               mkdir -p "$release_dir/bin"
-              echo "$release_dir" > "$HOME/Orbita/.last_release_dir"
             '
 
       - name: Upload artifacts to server
@@ -108,7 +110,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: "artifacts/"
-          target: "~/Orbita/releases/"
+          target: "~/Orbita/releases/${{ env.RELEASE_ID }}/"
           strip_components: 1
 
       - name: Activate release and restart
@@ -121,14 +123,18 @@ jobs:
           script: |
             bash -lc '
               set -euxo pipefail
-              release_dir="$(cat "$HOME/Orbita/.last_release_dir")"
+              release_dir="$HOME/Orbita/releases/${{ env.RELEASE_ID }}"
 
               cd "$HOME/Orbita"
               ln -sfn "$release_dir" current
+              chmod +x "$HOME/Orbita/current/bin/orbita"
 
               echo "Stopping old server..."
               sudo -n pkill orbita || true
 
               echo "Starting new server..."
               nohup "$HOME/Orbita/current/bin/orbita" > "$HOME/Orbita/orbita.log" 2>&1 &
+
+              sleep 1
+              pgrep -f "$HOME/Orbita/current/bin/orbita" >/dev/null
             '
