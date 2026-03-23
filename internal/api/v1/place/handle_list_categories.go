@@ -32,10 +32,7 @@ type listCategoriesPlace struct {
 }
 
 func (h *handler) handleListCategories(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromRequest(w, r)
-	if !ok {
-		return
-	}
+	userID, _ := auth.UserIDFromRequestOptional(w, r)
 	req, ok := parseListCategoriesRequest(r)
 	if !ok {
 		return

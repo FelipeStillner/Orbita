@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Place } from "@types";
 import { fetchPlace } from "@api";
 import { sendInteraction } from "./api";
+import { useAuth } from "@context/AuthContext";
 
 const CLOSE_ANIMATION_MS = 300;
 
@@ -10,6 +11,7 @@ export function usePlaceDetailViewModel(
   placeId: string | null,
   onClose: () => void
 ) {
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [isExiting, setIsExiting] = useState(false);
   const onCloseRef = useRef(onClose);
@@ -56,6 +58,7 @@ export function usePlaceDetailViewModel(
   };
 
   const handleLike = async () => {
+    if (!isAuthenticated) return;
     if (!place || !placeId) return;
     const nextLiked = !place.liked;
     queryClient.setQueryData<Place>(["place", placeId], (old) =>
@@ -66,7 +69,10 @@ export function usePlaceDetailViewModel(
     queryClient.invalidateQueries({ queryKey: ["feed"] });
   };
 
-  const handleSaveClick = () => setSaveDrawerOpen(true);
+  const handleSaveClick = () => {
+    if (!isAuthenticated) return;
+    setSaveDrawerOpen(true);
+  };
 
   const handleSaved = (collections: { id: string; name: string }[]) => {
     if (!placeId) return;

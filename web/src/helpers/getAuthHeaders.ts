@@ -1,7 +1,9 @@
 export const getAuthHeaders = () => {
     const token = localStorage.getItem("auth_token");
     if (!token) {
-        throw new Error("No auth token found");
+        // Guest mode: no Authorization header.
+        // Protected endpoints will still return 401.
+        return {};
     }
     return {
         Authorization: `Bearer ${token}`,

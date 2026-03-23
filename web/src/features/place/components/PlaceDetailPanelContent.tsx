@@ -9,6 +9,8 @@ interface Props {
   onLike: () => void;
   onSaveClick: () => void;
   onOpenMap: () => void;
+  likeDisabled?: boolean;
+  saveDisabled?: boolean;
 }
 
 const PLACEHOLDER_IMAGE =
@@ -19,6 +21,8 @@ export default function PlaceDetailPanelContent({
   onLike,
   onSaveClick,
   onOpenMap,
+  likeDisabled = false,
+  saveDisabled = false,
 }: Props) {
   const isSaved = (place.collections?.length ?? 0) > 0;
   const [isLiked, setIsLiked] = useState(place.liked);
@@ -71,8 +75,10 @@ export default function PlaceDetailPanelContent({
               size="sm"
               variant="default"
               className="rounded-full w-12 h-12 flex items-center justify-center"
+              disabled={likeDisabled}
               onClick={(e) => {
                 e.stopPropagation();
+                if (likeDisabled) return;
                 setIsLiked(!isLiked);
                 onLike();
               }}
@@ -83,7 +89,11 @@ export default function PlaceDetailPanelContent({
               size="sm"
               variant="default"
               className="rounded-full w-12 h-12 flex items-center justify-center"
-              onClick={onSaveClick}
+              disabled={saveDisabled}
+              onClick={() => {
+                if (saveDisabled) return;
+                onSaveClick();
+              }}
             >
               {isSaved ? <SavedIcon /> : <SaveIcon />}
             </Button>

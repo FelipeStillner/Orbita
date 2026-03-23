@@ -39,10 +39,7 @@ type getPlaceItem struct {
 }
 
 func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromRequest(w, r)
-	if !ok {
-		return
-	}
+	userID, _ := auth.UserIDFromRequestOptional(w, r)
 
 	idStr := r.PathValue("id")
 	if idStr == "" {

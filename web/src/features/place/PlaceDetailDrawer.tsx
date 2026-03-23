@@ -3,6 +3,7 @@ import { CloseIcon } from "@assets/icons";
 import { usePlaceDetailViewModel } from "./usePlaceDetailViewModel";
 import PlaceDetailPanelContent from "./components/PlaceDetailPanelContent";
 import SaveToCollectionDrawer from "./components/SaveToCollectionDrawer";
+import { useAuth } from "@context/AuthContext";
 
 const BOTTOM_BAR_OFFSET = "calc(72px + max(1rem, env(safe-area-inset-bottom)))";
 
@@ -17,6 +18,7 @@ export default function PlaceDetailDrawer({
   placeId,
   onClose,
 }: PlaceDetailDrawerProps) {
+  const { isAuthenticated } = useAuth();
   const {
     place,
     isLoading,
@@ -96,6 +98,8 @@ export default function PlaceDetailDrawer({
               onLike={handleLike}
               onSaveClick={handleSaveClick}
               onOpenMap={handleOpenMap}
+              likeDisabled={!isAuthenticated}
+              saveDisabled={!isAuthenticated}
             />
           )}
         </div>

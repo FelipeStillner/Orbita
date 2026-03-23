@@ -20,3 +20,17 @@ func UserIDFromRequest(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool)
 	}
 	return userID, true
 }
+
+func UserIDFromRequestOptional(w http.ResponseWriter, r *http.Request) (uuid.UUID, bool) {
+	ctx := r.Context()
+	u, _ := ctx.Value("user").(*User)
+	if u == nil {
+		return uuid.Nil, false
+	}
+	userID, err := uuid.Parse(u.ID)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusInternalServerError)
+		return uuid.Nil, false
+	}
+	return userID, true
+}

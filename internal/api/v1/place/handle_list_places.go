@@ -32,10 +32,7 @@ type listPlacesResponse struct {
 }
 
 func (h *handler) handleListPlaces(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromRequest(w, r)
-	if !ok {
-		return
-	}
+	userID, _ := auth.UserIDFromRequestOptional(w, r)
 	req, ok := parseListPlacesRequest(w, r)
 	if !ok {
 		return

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
-	"github.com/FelipeStillner/Orbita/internal/auth"
 )
 
 const defaultSearchSizeMeters = 5000
@@ -30,10 +28,6 @@ type searchPlacesResponse struct {
 }
 
 func (h *handler) handleSearchPlaces(w http.ResponseWriter, r *http.Request) {
-	_, ok := auth.UserIDFromRequest(w, r)
-	if !ok {
-		return
-	}
 	req, ok := parseSearchPlacesRequest(w, r)
 	if !ok {
 		return
