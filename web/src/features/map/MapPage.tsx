@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-providers";
 import { useMapViewModel, type MapPlace } from "./useMapViewModel";
 import { LoadingPage, ErrorPage, Button } from "@components";
 
@@ -74,6 +75,20 @@ function MapFitBounds({
   return null;
 }
 
+function StadiaTiles() {
+  const map = useMap();
+
+  useEffect(() => {
+    const layer = (L.tileLayer as any).provider("Stadia.AlidadeSmoothDark");
+    layer.addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map]);
+
+  return null;
+}
+
 export default function MapPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -123,10 +138,7 @@ export default function MapPage() {
           style={{ minHeight: "calc(100dvh - 4.5rem)" }}
           whenReady={() => setMapReady(true)}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <StadiaTiles />
           <Marker position={center} icon={userLocationIcon}>
             <Popup>
               <span className="text-sm font-medium text-white/90">You are here</span>
