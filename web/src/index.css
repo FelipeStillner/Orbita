@@ -213,6 +213,7 @@
       transform: translateX(100%);
       opacity: 0.8;
     }
+
     to {
       transform: translateX(0);
       opacity: 1;
@@ -228,6 +229,7 @@
       transform: translateX(0);
       opacity: 1;
     }
+
     to {
       transform: translateX(100%);
       opacity: 0.8;
@@ -380,10 +382,12 @@
 }
 
 @keyframes orbita-user-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(255, 255, 255, 0.15);
   }
+
   50% {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 0 14px rgba(255, 255, 255, 0.04);
   }

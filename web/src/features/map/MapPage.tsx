@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useMapViewModel, type MapPlace } from "./useMapViewModel";
 import { LoadingPage, ErrorPage, Button } from "@components";
-import { getCategoryLabel } from "@helpers/formatCategoryLabel";
 
 // Place marker: minimal grayscale dot to match app design
 const placeMarkerIcon = L.divIcon({
@@ -14,6 +13,32 @@ const placeMarkerIcon = L.divIcon({
   iconSize: [24, 24],
   iconAnchor: [12, 12],
   popupAnchor: [0, -12],
+});
+
+const selectedPlaceMarkerIcon = L.divIcon({
+  className: "",
+  html: `
+    <svg
+      class="orbita-selected-pin-svg"
+      xmlns="http://www.w3.org/2000/svg"
+      width="38"
+      height="44"
+      viewBox="0 0 38 44"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M19 1.75C10.5097 1.75 3.75 8.5097 3.75 17C3.75 28.85 19 42.25 19 42.25C19 42.25 34.25 28.85 34.25 17C34.25 8.5097 27.4903 1.75 19 1.75Z"
+        fill="#EF4444"
+        stroke="rgba(185, 28, 28, 0.95)"
+        stroke-width="1.25"
+      />
+      <circle cx="19" cy="18" r="6.2" fill="#7F1D1D" />
+      <circle cx="19" cy="18" r="3.2" fill="#2A0A0A" opacity="0.5" />
+    </svg>
+  `,
+  iconSize: [44, 44],
+  iconAnchor: [22, 44],
 });
 
 // User location: white/gray pulse to match grayscale theme
@@ -51,8 +76,11 @@ function MapFitBounds({
 
 export default function MapPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { viewState, location, places } = useMapViewModel();
   const [mapReady, setMapReady] = useState(false);
+  const selectedPlaceId = searchParams.get("place");
+  const selectedPlace = selectedPlaceId ? places.find((p) => p.id === selectedPlaceId) ?? null : null;
 
   const handleMarkerClick = useCallback(
     (id: string) => {
@@ -104,36 +132,28 @@ export default function MapPage() {
               <span className="text-sm font-medium text-white/90">You are here</span>
             </Popup>
           </Marker>
-          {places.map((place) => (
+          {selectedPlace && (
             <Marker
-              key={place.id}
-              position={[place.latitude, place.longitude]}
-              icon={placeMarkerIcon}
+              position={[selectedPlace.latitude, selectedPlace.longitude]}
+              icon={selectedPlaceMarkerIcon}
+              zIndexOffset={1000}
               eventHandlers={{
-                click: () => handleMarkerClick(place.id),
+                click: () => handleMarkerClick(selectedPlace.id),
               }}
-            >
-              <Popup>
-                <div className="min-w-[160px]">
-                  <Link
-                    to={`/map?place=${place.id}`}
-                    className="block rounded-lg transition-opacity hover:opacity-90"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <p className="font-semibold text-white text-sm leading-tight">
-                      {place.name}
-                    </p>
-                    <p className="text-white/60 text-xs mt-0.5">
-                      {getCategoryLabel(place.category)}
-                    </p>
-                    <p className="text-white/80 text-xs mt-1.5">
-                      Tap to view details →
-                    </p>
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+            />
+          )}
+          {places
+            .filter((place) => !selectedPlaceId || place.id !== selectedPlaceId)
+            .map((place) => (
+              <Marker
+                key={place.id}
+                position={[place.latitude, place.longitude]}
+                icon={placeMarkerIcon}
+                eventHandlers={{
+                  click: () => handleMarkerClick(place.id),
+                }}
+              />
+            ))}
           <MapFitBounds
             places={places}
             userLat={location.lat}
