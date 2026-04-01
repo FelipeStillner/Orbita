@@ -149,11 +149,7 @@ export default function MapPage() {
           whenReady={() => setMapReady(true)}
         >
           <StadiaTiles />
-          <Marker position={center} icon={userLocationIcon}>
-            <Popup>
-              <span className="text-sm font-medium text-white/90">You are here</span>
-            </Popup>
-          </Marker>
+          <Marker position={center} icon={userLocationIcon} />
           {selectedPlace && (
             <Marker
               position={[selectedPlace.latitude, selectedPlace.longitude]}
