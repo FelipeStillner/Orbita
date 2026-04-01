@@ -34,6 +34,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_STADIA_API_KEY: ${{ secrets.VITE_STADIA_API_KEY }}
         run: npm run build
 
       - name: Upload frontend artifact
