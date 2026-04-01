@@ -3,9 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "leaflet-providers";
 import { useMapViewModel, type MapPlace } from "./useMapViewModel";
 import { LoadingPage, ErrorPage, Button } from "@components";
+
+const STADIA_API_KEY = import.meta.env.VITE_STADIA_API_KEY;
 
 // Place marker: minimal grayscale dot to match app design
 const placeMarkerIcon = L.divIcon({
@@ -79,7 +80,16 @@ function StadiaTiles() {
   const map = useMap();
 
   useEffect(() => {
-    const layer = (L.tileLayer as any).provider("Stadia.AlidadeSmoothDark");
+    const layer = L.tileLayer(
+      `https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${STADIA_API_KEY}`,
+      {
+        maxZoom: 20,
+        attribution:
+          '&copy; <a href="https://stadiamaps.com/" target="_blank" rel="noreferrer">Stadia Maps</a> ' +
+          '&copy; <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a> ' +
+          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+      }
+    );
     layer.addTo(map);
     return () => {
       map.removeLayer(layer);
