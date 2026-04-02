@@ -8,3 +8,4 @@ export { Input } from "./Input";
 export { BottomBar } from "./BottomBar";
 export { LoadingPage } from "./LoadingPage";
 export { ErrorPage } from "./ErrorPage";
+export { LazyCoverImage } from "./LazyCoverImage";
