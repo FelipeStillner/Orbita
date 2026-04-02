@@ -72,9 +72,8 @@ export default function PlaceDetailPanelContent({
           </div>
           <div className="flex items-center gap-2">
             <Button
-              size="sm"
+              size="md"
               variant="default"
-              className="rounded-full w-12 h-12 flex items-center justify-center"
               disabled={likeDisabled}
               onClick={(e) => {
                 e.stopPropagation();
@@ -86,9 +85,8 @@ export default function PlaceDetailPanelContent({
               {isLiked ? <LikedIcon /> : <LikeIcon />}
             </Button>
             <Button
-              size="sm"
+              size="md"
               variant="default"
-              className="rounded-full w-12 h-12 flex items-center justify-center"
               disabled={saveDisabled}
               onClick={() => {
                 if (saveDisabled) return;
@@ -97,7 +95,7 @@ export default function PlaceDetailPanelContent({
             >
               {isSaved ? <SavedIcon /> : <SaveIcon />}
             </Button>
-            <Button size="sm" variant="default" onClick={onOpenMap}>
+            <Button size="md" variant="default" onClick={onOpenMap}>
               <MapIcon />
             </Button>
           </div>
