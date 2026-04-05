@@ -388,3 +388,84 @@ func (q *Queries) ListPlacesByCategory(ctx context.Context, arg ListPlacesByCate
 	}
 	return items, nil
 }
+
+const upsertPlacesFromOSM = `-- name: UpsertPlacesFromOSM :many
+INSERT INTO place (name, description, category, location, tags, opening_hours, wikidata_id)
+SELECT
+    s.name,
+    s.description,
+    s.category,
+    ST_SetSRID(ST_MakePoint(s.lon, s.lat), 4326),
+    s.tags_json::jsonb,
+    s.opening_hours,
+    s.wikidata_id
+FROM (
+    SELECT
+        unnest($1::text[]) AS name,
+        unnest($2::text[]) AS description,
+        unnest($3::text[]) AS category,
+        unnest($4::float8[]) AS lat,
+        unnest($5::float8[]) AS lon,
+        unnest($6::text[]) AS tags_json,
+        unnest($7::text[]) AS opening_hours,
+        unnest($8::text[]) AS wikidata_id
+) AS s
+WHERE s.wikidata_id IS NOT NULL AND btrim(s.wikidata_id) <> ''
+ON CONFLICT (wikidata_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    category = EXCLUDED.category,
+    location = EXCLUDED.location,
+    tags = EXCLUDED.tags,
+    opening_hours = EXCLUDED.opening_hours,
+    updated_at = NOW()
+RETURNING id, wikidata_id
+`
+
+type UpsertPlacesFromOSMParams struct {
+	Names            []string
+	Descriptions     []string
+	Categories       []string
+	Lats             []float64
+	Longs            []float64
+	TagsJson         []string
+	OpeningHoursList []string
+	WikidataIds      []string
+}
+
+type UpsertPlacesFromOSMRow struct {
+	ID         uuid.UUID
+	WikidataID sql.NullString
+}
+
+func (q *Queries) UpsertPlacesFromOSM(ctx context.Context, arg UpsertPlacesFromOSMParams) ([]UpsertPlacesFromOSMRow, error) {
+	rows, err := q.db.QueryContext(ctx, upsertPlacesFromOSM,
+		pq.Array(arg.Names),
+		pq.Array(arg.Descriptions),
+		pq.Array(arg.Categories),
+		pq.Array(arg.Lats),
+		pq.Array(arg.Longs),
+		pq.Array(arg.TagsJson),
+		pq.Array(arg.OpeningHoursList),
+		pq.Array(arg.WikidataIds),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UpsertPlacesFromOSMRow
+	for rows.Next() {
+		var i UpsertPlacesFromOSMRow
+		if err := rows.Scan(&i.ID, &i.WikidataID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

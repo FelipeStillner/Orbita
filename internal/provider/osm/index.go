@@ -11,6 +11,6 @@ type placeProvider struct {
 
 func NewProvider() *placeProvider {
 	return &placeProvider{
-		httpClient: &http.Client{Timeout: 30 * time.Second},
+		httpClient: &http.Client{Timeout: 90 * time.Second},
 	}
 }

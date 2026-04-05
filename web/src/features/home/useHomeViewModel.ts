@@ -1,10 +1,11 @@
-import { useQuery, useQueries, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useLayoutEffect, useState, useMemo } from "react";
 import { useGeolocation } from "@hooks/useGeolocation";
 import { fetchListCategories, fetchListPlaces, fetchSearchPlaces } from "@api";
 import type { PlaceListItem } from "@types";
 
 export function useHomeViewModel() {
+  const queryClient = useQueryClient();
   const { location, loading: locLoading, error: locError } = useGeolocation();
 
   const homeQuery = useQuery({
@@ -38,8 +39,9 @@ export function useHomeViewModel() {
       if (!location) throw new Error("Location not ready");
       return fetchSearchPlaces(location.lat, location.lng);
     },
-    onSuccess: (data) => {
-      console.log("Search places response", data);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listCategories"] });
+      queryClient.invalidateQueries({ queryKey: ["listPlaces"] });
     },
   });
 

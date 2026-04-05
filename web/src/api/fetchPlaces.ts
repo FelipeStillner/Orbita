@@ -25,6 +25,7 @@ export const fetchListPlaces = async (
 };
 
 type SearchPlaceItem = {
+  id?: string;
   name: string;
   category: string;
   latitude: number;

@@ -94,6 +94,38 @@ SELECT
     unnest(COALESCE(@opening_hours_list::text[], ARRAY[]::text[]))
 RETURNING id;
 
+-- name: UpsertPlacesFromOSM :many
+INSERT INTO place (name, description, category, location, tags, opening_hours, wikidata_id)
+SELECT
+    s.name,
+    s.description,
+    s.category,
+    ST_SetSRID(ST_MakePoint(s.lon, s.lat), 4326),
+    s.tags_json::jsonb,
+    s.opening_hours,
+    s.wikidata_id
+FROM (
+    SELECT
+        unnest(@names::text[]) AS name,
+        unnest(@descriptions::text[]) AS description,
+        unnest(@categories::text[]) AS category,
+        unnest(@lats::float8[]) AS lat,
+        unnest(@longs::float8[]) AS lon,
+        unnest(@tags_json::text[]) AS tags_json,
+        unnest(@opening_hours_list::text[]) AS opening_hours,
+        unnest(@wikidata_ids::text[]) AS wikidata_id
+) AS s
+WHERE s.wikidata_id IS NOT NULL AND btrim(s.wikidata_id) <> ''
+ON CONFLICT (wikidata_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    category = EXCLUDED.category,
+    location = EXCLUDED.location,
+    tags = EXCLUDED.tags,
+    opening_hours = EXCLUDED.opening_hours,
+    updated_at = NOW()
+RETURNING id, wikidata_id;
+
 -- name: AddPlaceImagesBatch :exec
 INSERT INTO place_image (place_id, url, description, is_primary)
 SELECT

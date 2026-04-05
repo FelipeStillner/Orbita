@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"github.com/google/uuid"
 )
 
 const defaultSearchSizeMeters = 5000
@@ -15,6 +17,7 @@ type searchPlacesRequest struct {
 }
 
 type searchPlaceItem struct {
+	ID           string   `json:"id,omitempty"`
 	Name         string   `json:"name"`
 	Category     string   `json:"category"`
 	Latitude     float64  `json:"latitude"`
@@ -42,14 +45,18 @@ func (h *handler) handleSearchPlaces(w http.ResponseWriter, r *http.Request) {
 
 	items := make([]searchPlaceItem, 0, len(places))
 	for _, p := range places {
-		items = append(items, searchPlaceItem{
+		item := searchPlaceItem{
 			Name:         p.Name,
 			Category:     p.Category,
 			Latitude:     p.Lat,
 			Longitude:    p.Long,
 			Tags:         p.Tags,
 			OpeningHours: p.OpeningHours,
-		})
+		}
+		if p.ID != uuid.Nil {
+			item.ID = p.ID.String()
+		}
+		items = append(items, item)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

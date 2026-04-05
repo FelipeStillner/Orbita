@@ -36,6 +36,7 @@ type Place struct {
 	UpdatedAt    time.Time
 	Tags         pqtype.NullRawMessage
 	OpeningHours sql.NullString
+	WikidataID   sql.NullString
 }
 
 type PlaceImage struct {
