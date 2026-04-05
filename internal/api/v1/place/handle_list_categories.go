@@ -23,12 +23,17 @@ type listCategoriesCategory struct {
 }
 
 type listCategoriesPlace struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Category  string  `json:"category"`
-	Image     string  `json:"image"`
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	Category       string   `json:"category"`
+	Image          string   `json:"image"`
+	Latitude       float64  `json:"latitude"`
+	Longitude      float64  `json:"longitude"`
+	DistanceMeters float64  `json:"distance_meters"`
+	LikeCount      int32    `json:"like_count"`
+	Tags           []string `json:"tags,omitempty"`
+	PhotoCount     int      `json:"photo_count"`
+	IsOpenNow      *bool    `json:"is_open_now,omitempty"`
 }
 
 func (h *handler) handleListCategories(w http.ResponseWriter, r *http.Request) {
@@ -53,13 +58,22 @@ func (h *handler) handleListCategories(w http.ResponseWriter, r *http.Request) {
 			if len(p.Images) > 0 {
 				image = p.Images[0].URL
 			}
+			dm := 0.0
+			if p.DistanceMeters != nil {
+				dm = *p.DistanceMeters
+			}
 			items = append(items, listCategoriesPlace{
-				ID:        p.ID.String(),
-				Name:      p.Name,
-				Category:  p.Category,
-				Image:     image,
-				Latitude:  p.Latitude,
-				Longitude: p.Longitude,
+				ID:             p.ID.String(),
+				Name:           p.Name,
+				Category:       p.Category,
+				Image:          image,
+				Latitude:       p.Latitude,
+				Longitude:      p.Longitude,
+				DistanceMeters: dm,
+				LikeCount:      p.LikeCount,
+				Tags:           p.Tags,
+				PhotoCount:     len(p.Images),
+				IsOpenNow:      p.IsOpenNow,
 			})
 		}
 		sections = append(sections, listCategoriesCategory{Category: cp.Category, Places: items})

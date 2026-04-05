@@ -165,47 +165,52 @@ SELECT
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
     (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
-    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
+    ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography
+    )::float8 AS distance_meters
 FROM place p
-LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $1::uuid
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
 WHERE ST_DWithin(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography,
+    ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography,
     $4::float
 ) AND COALESCE(upi.hidden, FALSE) = FALSE
 ORDER BY ST_Distance(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography
+    ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography
 ) ASC
 `
 
 type ListNearbyPlacesParams struct {
-	UserID       uuid.UUID
 	Lon          float64
 	Lat          float64
+	UserID       uuid.UUID
 	RadiusMeters float64
 }
 
 type ListNearbyPlacesRow struct {
-	ID           uuid.UUID
-	Name         string
-	Category     string
-	Description  sql.NullString
-	Latitude     float64
-	Longitude    float64
-	Liked        bool
-	Tags         pqtype.NullRawMessage
-	OpeningHours sql.NullString
-	LikeCount    int32
-	SaveCount    int32
-	HideCount    int32
+	ID             uuid.UUID
+	Name           string
+	Category       string
+	Description    sql.NullString
+	Latitude       float64
+	Longitude      float64
+	Liked          bool
+	Tags           pqtype.NullRawMessage
+	OpeningHours   sql.NullString
+	LikeCount      int32
+	SaveCount      int32
+	HideCount      int32
+	DistanceMeters float64
 }
 
 func (q *Queries) ListNearbyPlaces(ctx context.Context, arg ListNearbyPlacesParams) ([]ListNearbyPlacesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listNearbyPlaces,
-		arg.UserID,
 		arg.Lon,
 		arg.Lat,
+		arg.UserID,
 		arg.RadiusMeters,
 	)
 	if err != nil {
@@ -228,6 +233,7 @@ func (q *Queries) ListNearbyPlaces(ctx context.Context, arg ListNearbyPlacesPara
 			&i.LikeCount,
 			&i.SaveCount,
 			&i.HideCount,
+			&i.DistanceMeters,
 		); err != nil {
 			return nil, err
 		}
@@ -297,49 +303,54 @@ SELECT
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
     (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
-    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
+    ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography
+    )::float8 AS distance_meters
 FROM place p
-LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $1::uuid
+LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $3::uuid
 WHERE ST_DWithin(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography,
+    ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography,
     $4::float
 ) AND COALESCE(upi.hidden, FALSE) = FALSE
 AND p.category = $5
 ORDER BY ST_Distance(
     p.location::geography,
-    ST_SetSRID(ST_MakePoint($2::float, $3::float), 4326)::geography
+    ST_SetSRID(ST_MakePoint($1::float, $2::float), 4326)::geography
 ) ASC
 `
 
 type ListPlacesByCategoryParams struct {
-	UserID       uuid.UUID
 	Lon          float64
 	Lat          float64
+	UserID       uuid.UUID
 	RadiusMeters float64
 	Category     string
 }
 
 type ListPlacesByCategoryRow struct {
-	ID           uuid.UUID
-	Name         string
-	Category     string
-	Description  sql.NullString
-	Latitude     float64
-	Longitude    float64
-	Liked        bool
-	Tags         pqtype.NullRawMessage
-	OpeningHours sql.NullString
-	LikeCount    int32
-	SaveCount    int32
-	HideCount    int32
+	ID             uuid.UUID
+	Name           string
+	Category       string
+	Description    sql.NullString
+	Latitude       float64
+	Longitude      float64
+	Liked          bool
+	Tags           pqtype.NullRawMessage
+	OpeningHours   sql.NullString
+	LikeCount      int32
+	SaveCount      int32
+	HideCount      int32
+	DistanceMeters float64
 }
 
 func (q *Queries) ListPlacesByCategory(ctx context.Context, arg ListPlacesByCategoryParams) ([]ListPlacesByCategoryRow, error) {
 	rows, err := q.db.QueryContext(ctx, listPlacesByCategory,
-		arg.UserID,
 		arg.Lon,
 		arg.Lat,
+		arg.UserID,
 		arg.RadiusMeters,
 		arg.Category,
 	)
@@ -363,6 +374,7 @@ func (q *Queries) ListPlacesByCategory(ctx context.Context, arg ListPlacesByCate
 			&i.LikeCount,
 			&i.SaveCount,
 			&i.HideCount,
+			&i.DistanceMeters,
 		); err != nil {
 			return nil, err
 		}

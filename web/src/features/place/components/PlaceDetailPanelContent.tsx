@@ -3,6 +3,8 @@ import type { Place } from "@types";
 import { Button, Badge, Text } from "@components";
 import { LikeIcon, LikedIcon, SaveIcon, SavedIcon, MapIcon } from "@assets/icons";
 import { getCategoryLabel } from "@helpers/formatCategoryLabel";
+import { formatDistanceMeters } from "@helpers/formatDistance";
+import { formatPlaceTagLabel } from "@helpers/formatPlaceTag";
 
 interface Props {
   place: Place;
@@ -64,12 +66,44 @@ export default function PlaceDetailPanelContent({
           </Text>
           <div className="flex items-center gap-3 flex-wrap">
             <Badge>{getCategoryLabel(place.category)}</Badge>
+            {place.is_open_now === true && (
+              <Badge>
+                <span className="text-emerald-300">Open</span>
+              </Badge>
+            )}
+            {place.is_open_now === false && (
+              <Badge>
+                <span className="text-rose-300/95">Closed</span>
+              </Badge>
+            )}
+            {typeof place.distance_meters === "number" && (
+              <Text variant="body-sm" muted className="text-white/70">
+                {formatDistanceMeters(place.distance_meters)} away
+              </Text>
+            )}
+            {typeof place.like_count === "number" && place.like_count > 0 && (
+              <Text variant="body-sm" muted className="text-white/70">
+                {place.like_count} likes
+              </Text>
+            )}
             {place.opening_hours && (
               <Text variant="body-sm" muted className="text-white/70">
                 {place.opening_hours}
               </Text>
             )}
           </div>
+          {place.tags && place.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {place.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/85"
+                >
+                  {formatPlaceTagLabel(tag)}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Button
               size="md"

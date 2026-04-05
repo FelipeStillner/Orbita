@@ -8,12 +8,14 @@ import (
 
 	"github.com/FelipeStillner/Orbita/internal/database"
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
+	"github.com/FelipeStillner/Orbita/internal/shared/geox"
+	"github.com/FelipeStillner/Orbita/internal/shared/timex"
 	"github.com/google/uuid"
 )
 
 var ErrNotFound = errors.New("place not found")
 
-func (s *Service) GetByID(ctx context.Context, userID, placeID uuid.UUID) (*types.Result, error) {
+func (s *Service) GetByID(ctx context.Context, userID, placeID uuid.UUID, viewerLat, viewerLon *float64) (*types.Result, error) {
 	row, err := s.queries.GetPlaceByID(ctx, database.GetPlaceByIDParams{
 		UserID:  userID,
 		PlaceID: placeID,
@@ -60,20 +62,33 @@ func (s *Service) GetByID(ctx context.Context, userID, placeID uuid.UUID) (*type
 		_ = json.Unmarshal(row.Tags.RawMessage, &tags)
 	}
 
+	var isOpen *bool
+	if row.OpeningHours.Valid {
+		isOpen = timex.IsOpenNow(row.OpeningHours.String, venueTimeLocation())
+	}
+
+	var dist *float64
+	if viewerLat != nil && viewerLon != nil {
+		d := geox.HaversineMeters(*viewerLat, *viewerLon, row.Latitude, row.Longitude)
+		dist = &d
+	}
+
 	return &types.Result{
-		ID:           row.ID,
-		Name:         row.Name,
-		Latitude:     row.Latitude,
-		Longitude:    row.Longitude,
-		Images:       images,
-		Description:  row.Description.String,
-		Category:     row.Category,
-		Liked:        row.Liked,
-		Collections:  collections,
-		Tags:         tags,
-		OpeningHours: row.OpeningHours.String,
-		LikeCount:    row.LikeCount,
-		SaveCount:    row.SaveCount,
-		HideCount:    row.HideCount,
+		ID:             row.ID,
+		Name:           row.Name,
+		Latitude:       row.Latitude,
+		Longitude:      row.Longitude,
+		Images:         images,
+		Description:    row.Description.String,
+		Category:       row.Category,
+		Liked:          row.Liked,
+		Collections:    collections,
+		Tags:           tags,
+		OpeningHours:   row.OpeningHours.String,
+		LikeCount:      row.LikeCount,
+		SaveCount:      row.SaveCount,
+		HideCount:      row.HideCount,
+		DistanceMeters: dist,
+		IsOpenNow:      isOpen,
 	}, nil
 }

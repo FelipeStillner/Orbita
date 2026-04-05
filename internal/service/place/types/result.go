@@ -14,18 +14,20 @@ type CollectionItem struct {
 }
 
 type Result struct {
-	ID           uuid.UUID
-	Name         string
-	Latitude     float64
-	Longitude    float64
-	Images       []PlaceImage
-	Description  string
-	Category     string
-	Liked        bool
-	Collections  []CollectionItem
-	Tags         []string
-	OpeningHours string
-	LikeCount    int32
-	SaveCount    int32
-	HideCount    int32
+	ID              uuid.UUID
+	Name            string
+	Latitude        float64
+	Longitude       float64
+	Images          []PlaceImage
+	Description     string
+	Category        string
+	Liked           bool
+	Collections     []CollectionItem
+	Tags            []string
+	OpeningHours    string
+	LikeCount       int32
+	SaveCount       int32
+	HideCount       int32
+	DistanceMeters  *float64
+	IsOpenNow       *bool
 }

@@ -24,6 +24,9 @@ export interface Place {
   like_count?: number;
   save_count?: number;
   hide_count?: number;
+  /** Present when the client requested `lat` + `long` on `GET /api/places/:id`. */
+  distance_meters?: number;
+  is_open_now?: boolean;
 }
 
 export interface PlaceListItem {
@@ -33,6 +36,11 @@ export interface PlaceListItem {
   images: Image[];
   latitude?: number;
   longitude?: number;
+  distance_meters?: number;
+  like_count?: number;
+  tags?: string[];
+  photo_count?: number;
+  is_open_now?: boolean;
 }
 
 export interface PlacesListResponse {

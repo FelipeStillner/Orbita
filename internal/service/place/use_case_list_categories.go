@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
+	"github.com/FelipeStillner/Orbita/internal/shared/timex"
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
 	"github.com/google/uuid"
 )
@@ -84,20 +85,27 @@ func (s *Service) ListCategories(ctx context.Context, userID uuid.UUID, lat, lon
 			if row.Tags.Valid {
 				_ = json.Unmarshal(row.Tags.RawMessage, &tags)
 			}
+			dm := row.DistanceMeters
+			var isOpen *bool
+			if row.OpeningHours.Valid {
+				isOpen = timex.IsOpenNow(row.OpeningHours.String, venueTimeLocation())
+			}
 			places = append(places, types.Result{
-				ID:           row.ID,
-				Name:         row.Name,
-				Category:     row.Category,
-				Latitude:     row.Latitude,
-				Longitude:    row.Longitude,
-				Images:       images,
-				Description:  row.Description.String,
-				Liked:        row.Liked,
-				Tags:         tags,
-				OpeningHours: row.OpeningHours.String,
-				LikeCount:    row.LikeCount,
-				SaveCount:    row.SaveCount,
-				HideCount:    row.HideCount,
+				ID:             row.ID,
+				Name:           row.Name,
+				Category:       row.Category,
+				Latitude:       row.Latitude,
+				Longitude:      row.Longitude,
+				Images:         images,
+				Description:    row.Description.String,
+				Liked:          row.Liked,
+				Tags:           tags,
+				OpeningHours:   row.OpeningHours.String,
+				LikeCount:      row.LikeCount,
+				SaveCount:      row.SaveCount,
+				HideCount:      row.HideCount,
+				DistanceMeters: &dm,
+				IsOpenNow:      isOpen,
 			})
 		}
 		out = append(out, CategoryPlaces{Category: cat, Places: places})

@@ -21,10 +21,17 @@ type listPlaceImage struct {
 }
 
 type listPlaceItem struct {
-	ID       string           `json:"id"`
-	Name     string           `json:"name"`
-	Category string           `json:"category"`
-	Images   []listPlaceImage `json:"images"`
+	ID             string           `json:"id"`
+	Name           string           `json:"name"`
+	Category       string           `json:"category"`
+	Images         []listPlaceImage `json:"images"`
+	Latitude       float64          `json:"latitude"`
+	Longitude      float64          `json:"longitude"`
+	DistanceMeters float64          `json:"distance_meters"`
+	LikeCount      int32            `json:"like_count"`
+	Tags           []string         `json:"tags,omitempty"`
+	PhotoCount     int              `json:"photo_count"`
+	IsOpenNow      *bool            `json:"is_open_now,omitempty"`
 }
 
 type listPlacesResponse struct {
@@ -55,11 +62,22 @@ func (h *handler) handleListPlaces(w http.ResponseWriter, r *http.Request) {
 				IsPrimary:   img.IsPrimary,
 			}
 		}
+		dm := 0.0
+		if p.DistanceMeters != nil {
+			dm = *p.DistanceMeters
+		}
 		items = append(items, listPlaceItem{
-			ID:       p.ID.String(),
-			Name:     p.Name,
-			Category: p.Category,
-			Images:   images,
+			ID:             p.ID.String(),
+			Name:           p.Name,
+			Category:       p.Category,
+			Images:         images,
+			Latitude:       p.Latitude,
+			Longitude:      p.Longitude,
+			DistanceMeters: dm,
+			LikeCount:      p.LikeCount,
+			Tags:           p.Tags,
+			PhotoCount:     len(images),
+			IsOpenNow:      p.IsOpenNow,
 		})
 	}
 	w.Header().Set("Content-Type", "application/json")

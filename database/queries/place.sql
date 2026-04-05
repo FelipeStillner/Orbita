@@ -11,7 +11,11 @@ SELECT
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
     (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
-    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
+    ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint(@lon::float, @lat::float), 4326)::geography
+    )::float8 AS distance_meters
 FROM place p
 LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = @user_id::uuid
 WHERE ST_DWithin(
@@ -37,7 +41,11 @@ SELECT
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
     (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
-    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
+    (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
+    ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint(@lon::float, @lat::float), 4326)::geography
+    )::float8 AS distance_meters
 FROM place p
 LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = @user_id::uuid
 WHERE ST_DWithin(

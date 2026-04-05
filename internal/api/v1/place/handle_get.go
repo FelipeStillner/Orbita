@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/FelipeStillner/Orbita/internal/auth"
 	"github.com/FelipeStillner/Orbita/internal/service/place"
@@ -22,20 +23,22 @@ type getPlaceImage struct {
 }
 
 type getPlaceItem struct {
-	ID           string                   `json:"id"`
-	Name         string                   `json:"name"`
-	Latitude     float64                  `json:"latitude"`
-	Longitude    float64                  `json:"longitude"`
-	Images       []getPlaceImage          `json:"images"`
-	Description  string                   `json:"description"`
-	Category     string                   `json:"category"`
-	Liked        bool                     `json:"liked"`
-	Collections  []getPlaceCollectionItem `json:"collections"`
-	Tags         []string                 `json:"tags,omitempty"`
-	OpeningHours string                   `json:"opening_hours,omitempty"`
-	LikeCount    int32                    `json:"like_count"`
-	SaveCount    int32                    `json:"save_count"`
-	HideCount    int32                    `json:"hide_count"`
+	ID             string                   `json:"id"`
+	Name           string                   `json:"name"`
+	Latitude       float64                  `json:"latitude"`
+	Longitude      float64                  `json:"longitude"`
+	Images         []getPlaceImage          `json:"images"`
+	Description    string                   `json:"description"`
+	Category       string                   `json:"category"`
+	Liked          bool                     `json:"liked"`
+	Collections    []getPlaceCollectionItem `json:"collections"`
+	Tags           []string                 `json:"tags,omitempty"`
+	OpeningHours   string                   `json:"opening_hours,omitempty"`
+	LikeCount      int32                    `json:"like_count"`
+	SaveCount      int32                    `json:"save_count"`
+	HideCount      int32                    `json:"hide_count"`
+	DistanceMeters *float64                 `json:"distance_meters,omitempty"`
+	IsOpenNow      *bool                    `json:"is_open_now,omitempty"`
 }
 
 func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +55,17 @@ func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var viewerLat, viewerLon *float64
+	if latStr, lonStr := r.URL.Query().Get("lat"), r.URL.Query().Get("long"); latStr != "" && lonStr != "" {
+		lat, e1 := strconv.ParseFloat(latStr, 64)
+		lon, e2 := strconv.ParseFloat(lonStr, 64)
+		if e1 == nil && e2 == nil {
+			viewerLat, viewerLon = &lat, &lon
+		}
+	}
+
 	ctx := r.Context()
-	p, err := h.service.GetByID(ctx, userID, placeID)
+	p, err := h.service.GetByID(ctx, userID, placeID, viewerLat, viewerLon)
 	if err != nil {
 		if errors.Is(err, place.ErrNotFound) {
 			http.Error(w, "place not found", http.StatusNotFound)
@@ -76,20 +88,22 @@ func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		collections[j] = getPlaceCollectionItem{ID: c.ID.String(), Name: c.Name}
 	}
 	item := getPlaceItem{
-		ID:           p.ID.String(),
-		Name:         p.Name,
-		Latitude:     p.Latitude,
-		Longitude:    p.Longitude,
-		Images:       images,
-		Description:  p.Description,
-		Category:     p.Category,
-		Liked:        p.Liked,
-		Collections:  collections,
-		Tags:         p.Tags,
-		OpeningHours: p.OpeningHours,
-		LikeCount:    p.LikeCount,
-		SaveCount:    p.SaveCount,
-		HideCount:    p.HideCount,
+		ID:             p.ID.String(),
+		Name:           p.Name,
+		Latitude:       p.Latitude,
+		Longitude:      p.Longitude,
+		Images:         images,
+		Description:    p.Description,
+		Category:       p.Category,
+		Liked:          p.Liked,
+		Collections:    collections,
+		Tags:           p.Tags,
+		OpeningHours:   p.OpeningHours,
+		LikeCount:      p.LikeCount,
+		SaveCount:      p.SaveCount,
+		HideCount:      p.HideCount,
+		DistanceMeters: p.DistanceMeters,
+		IsOpenNow:      p.IsOpenNow,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

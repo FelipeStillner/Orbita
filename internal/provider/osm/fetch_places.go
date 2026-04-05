@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
-	h "github.com/FelipeStillner/Orbita/internal/shared/helpers"
+	"github.com/FelipeStillner/Orbita/internal/shared/strx"
 )
 
 const overpassUserAgent = "OrbitaPlaceApp/1.0 (https://github.com/FelipeStillner/Orbita)"
@@ -54,10 +54,10 @@ func (c *placeProvider) FetchPlaces(latS, lonW, latN, lonE float64) ([]types.Pla
 		return nil, fmt.Errorf("overpass read body: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("overpass returned %d: %s", resp.StatusCode, h.Truncate(string(resBody), 300))
+		return nil, fmt.Errorf("overpass returned %d: %s", resp.StatusCode, strx.Truncate(string(resBody), 300))
 	}
 	if len(resBody) > 0 && resBody[0] != '{' && resBody[0] != '[' {
-		return nil, fmt.Errorf("overpass returned non-JSON: %s", h.Truncate(string(resBody), 300))
+		return nil, fmt.Errorf("overpass returned non-JSON: %s", strx.Truncate(string(resBody), 300))
 	}
 
 	places, err := c.parsePlaces(resBody)

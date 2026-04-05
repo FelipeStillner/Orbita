@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/FelipeStillner/Orbita/internal/database"
+	"github.com/FelipeStillner/Orbita/internal/shared/timex"
 	"github.com/FelipeStillner/Orbita/internal/service/place/types"
 	"github.com/google/uuid"
 )
@@ -74,21 +75,28 @@ func (s *Service) ListPlaces(ctx context.Context, userID uuid.UUID, lat, long fl
 		if row.Tags.Valid {
 			_ = json.Unmarshal(row.Tags.RawMessage, &tags)
 		}
+		dm := row.DistanceMeters
+		var isOpen *bool
+		if row.OpeningHours.Valid {
+			isOpen = timex.IsOpenNow(row.OpeningHours.String, venueTimeLocation())
+		}
 		results[i] = types.Result{
-			ID:           row.ID,
-			Name:         row.Name,
-			Latitude:     row.Latitude,
-			Longitude:    row.Longitude,
-			Images:       images,
-			Description:  row.Description.String,
-			Category:     row.Category,
-			Liked:        row.Liked,
-			Collections:  collections,
-			Tags:         tags,
-			OpeningHours: row.OpeningHours.String,
-			LikeCount:    row.LikeCount,
-			SaveCount:    row.SaveCount,
-			HideCount:    row.HideCount,
+			ID:             row.ID,
+			Name:           row.Name,
+			Latitude:       row.Latitude,
+			Longitude:      row.Longitude,
+			Images:         images,
+			Description:    row.Description.String,
+			Category:       row.Category,
+			Liked:          row.Liked,
+			Collections:    collections,
+			Tags:           tags,
+			OpeningHours:   row.OpeningHours.String,
+			LikeCount:      row.LikeCount,
+			SaveCount:      row.SaveCount,
+			HideCount:      row.HideCount,
+			DistanceMeters: &dm,
+			IsOpenNow:      isOpen,
 		}
 	}
 	return results, nil

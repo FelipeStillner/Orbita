@@ -4,6 +4,7 @@ import type { Place } from "@types";
 import { fetchPlace } from "@api";
 import { sendInteraction } from "./api";
 import { useAuth } from "@context/AuthContext";
+import { useGeolocation } from "@hooks/useGeolocation";
 
 const CLOSE_ANIMATION_MS = 300;
 
@@ -12,6 +13,7 @@ export function usePlaceDetailViewModel(
   onClose: () => void
 ) {
   const { isAuthenticated } = useAuth();
+  const { location } = useGeolocation();
   const queryClient = useQueryClient();
   const [isExiting, setIsExiting] = useState(false);
   const onCloseRef = useRef(onClose);
@@ -43,8 +45,13 @@ export function usePlaceDetailViewModel(
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["place", placeId],
-    queryFn: () => fetchPlace(placeId!),
+    queryKey: ["place", placeId, location?.lat, location?.lng],
+    queryFn: () =>
+      fetchPlace(
+        placeId!,
+        location?.lat,
+        location?.lng
+      ),
     enabled: !!placeId,
   });
 
