@@ -2,7 +2,7 @@ import { Button } from "@components";
 import { CloseIcon } from "@assets/icons";
 import { usePlaceDetailViewModel } from "./usePlaceDetailViewModel";
 import PlaceDetailPanelContent from "./components/PlaceDetailPanelContent";
-import SaveToCollectionDrawer from "./components/SaveToCollectionDrawer";
+import SaveToGuideDrawer from "./components/SaveToGuideDrawer";
 import { useAuth } from "@context/AuthContext";
 
 const BOTTOM_BAR_OFFSET = "calc(72px + max(1rem, env(safe-area-inset-bottom)))";
@@ -42,7 +42,7 @@ export default function PlaceDetailDrawer({
       <button
         type="button"
         aria-label="Close"
-        className="fixed left-0 right-0 z-[90] bg-black/50 transition-opacity duration-300 md:hidden"
+        className="fixed left-0 right-0 z-[2000] bg-black/50 transition-opacity duration-300 md:hidden"
         style={{
           top: 0,
           bottom: BOTTOM_BAR_OFFSET,
@@ -52,7 +52,7 @@ export default function PlaceDetailDrawer({
 
       {/* Floating panel: same horizontal inset as BottomBar on mobile; fixed width (360px) on desktop */}
       <div
-        className={`fixed my-4 left-4 right-4 md:left-auto md:right-4 z-[95] md:w-[400px] flex flex-col overflow-hidden glass-dark border border-white/10 shadow-2xl ${isExiting ? "animate-slide-out-right" : "animate-slide-in-right"}`}
+        className={`fixed my-4 left-4 right-4 md:left-auto md:right-4 z-[2010] md:w-[400px] flex flex-col overflow-hidden glass-dark border border-white/10 shadow-2xl ${isExiting ? "animate-slide-out-right" : "animate-slide-in-right"}`}
         style={{
           top: 0,
           bottom: BOTTOM_BAR_OFFSET,
@@ -105,7 +105,7 @@ export default function PlaceDetailDrawer({
         </div>
       </div>
 
-      <SaveToCollectionDrawer
+      <SaveToGuideDrawer
         key={place?.id}
         place={saveDrawerOpen && place ? place : null}
         onClose={() => setSaveDrawerOpen(false)}

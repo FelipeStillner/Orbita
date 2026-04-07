@@ -10,12 +10,13 @@ export default function AppLayout() {
 
   const isHome = location.pathname === "/";
   const isMap = location.pathname === "/map";
-  const isCollections = location.pathname === "/collections";
+  const isGuides =
+    location.pathname === "/guides" || location.pathname.startsWith("/guides/");
   const isProfile = location.pathname === "/profile";
 
   const placeId = searchParams.get("place");
   const showPlaceDrawer =
-    (isHome || isMap || isCollections) && !!placeId;
+    (isHome || isMap || isGuides) && !!placeId;
 
   const closePlaceDrawer = () => {
     setSearchParams(
@@ -50,9 +51,9 @@ export default function AppLayout() {
         <Button
           variant="ghost"
           size="lg"
-          onClick={() => navigate("/collections")}
+          onClick={() => navigate("/guides")}
         >
-          <CollectionsIcon filled={isCollections} />
+          <CollectionsIcon filled={isGuides} />
         </Button>
 
         <Button

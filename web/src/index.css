@@ -355,6 +355,51 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.orbita-guide-step-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.orbita-guide-step-marker-inner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: #1c1c1e;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Guide place: step number + letter (e.g. 1a, 2b) */
+.orbita-guide-place-label-inner {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: #1c1c1e;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.leaflet-marker-icon.orbita-guide-step-marker:hover .orbita-guide-place-label-inner {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 /* User location: target/crosshair style (ring + center dot) – clearly distinct from place dots */
 .orbita-user-marker-inner {
   position: relative;

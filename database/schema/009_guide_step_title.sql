@@ -1,0 +1,2 @@
+ALTER TABLE guide_step
+  ADD COLUMN IF NOT EXISTS step_title TEXT NOT NULL DEFAULT '';

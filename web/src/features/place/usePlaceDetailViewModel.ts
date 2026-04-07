@@ -81,14 +81,15 @@ export function usePlaceDetailViewModel(
     setSaveDrawerOpen(true);
   };
 
-  const handleSaved = (collections: { id: string; name: string }[]) => {
+  const handleSaved = (guides: { id: string; name: string }[]) => {
     if (!placeId) return;
-    queryClient.setQueryData<Place>(["place", placeId], (old) =>
-      old ? { ...old, collections } : old
+    queryClient.setQueryData<Place>(
+      ["place", placeId, location?.lat, location?.lng],
+      (old) => (old ? { ...old, guides } : old)
     );
     queryClient.invalidateQueries({ queryKey: ["place", placeId] });
     queryClient.invalidateQueries({ queryKey: ["feed"] });
-    queryClient.invalidateQueries({ queryKey: ["collections"] });
+    queryClient.invalidateQueries({ queryKey: ["guides"] });
   };
 
   return {

@@ -21,7 +21,7 @@ export function Drawer({ open, onClose, children, title, compact }: DrawerProps)
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center sm:justify-center">
+    <div className="fixed inset-0 z-[2050] flex items-end sm:items-center sm:justify-center">
       {/* Overlay */}
       <button
         type="button"

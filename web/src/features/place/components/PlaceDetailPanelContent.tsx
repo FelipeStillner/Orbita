@@ -26,7 +26,7 @@ export default function PlaceDetailPanelContent({
   likeDisabled = false,
   saveDisabled = false,
 }: Props) {
-  const isSaved = (place.collections?.length ?? 0) > 0;
+  const isSaved = (place.guides?.length ?? 0) > 0;
   const [isLiked, setIsLiked] = useState(place.liked);
 
   useEffect(() => {

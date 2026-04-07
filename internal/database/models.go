@@ -6,24 +6,37 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/sqlc-dev/pqtype"
 )
 
-type Collection struct {
+type Guide struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
-	Name      string
+	Title     string
+	Blurb     sql.NullString
+	CoverUrl  sql.NullString
+	Tags      json.RawMessage
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-type CollectionPlace struct {
-	CollectionID uuid.UUID
-	PlaceID      uuid.UUID
-	CreatedAt    time.Time
+type GuideStep struct {
+	ID        uuid.UUID
+	GuideID   uuid.UUID
+	Position  int32
+	StepTitle string
+	StepNote  sql.NullString
+}
+
+type GuideStepPlace struct {
+	GuideStepID uuid.UUID
+	PlaceID     uuid.UUID
+	Position    int32
+	OptionNote  sql.NullString
 }
 
 type Place struct {

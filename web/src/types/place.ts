@@ -4,7 +4,7 @@ interface Image {
   is_primary: boolean;
 }
 
-interface PlaceCollection {
+interface PlaceGuide {
   id: string;
   name: string;
 }
@@ -16,7 +16,7 @@ export interface Place {
   description: string;
   images: Image[];
   liked: boolean;
-  collections?: PlaceCollection[];
+  guides?: PlaceGuide[];
   latitude: number;
   longitude: number;
   tags?: string[];

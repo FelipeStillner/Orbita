@@ -105,7 +105,10 @@ SELECT
     COALESCE(p.tags, '[]'::jsonb) AS tags,
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
-    (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
+    (SELECT COUNT(DISTINCT gs.guide_id)::int
+     FROM guide_step_place gsp
+     INNER JOIN guide_step gs ON gs.id = gsp.guide_step_id
+     WHERE gsp.place_id = p.id) AS save_count,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count
 FROM place p
 LEFT JOIN user_place_interactions upi ON p.id = upi.place_id AND upi.user_id = $1::uuid
@@ -164,7 +167,10 @@ SELECT
     COALESCE(p.tags, '[]'::jsonb) AS tags,
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
-    (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
+    (SELECT COUNT(DISTINCT gs.guide_id)::int
+     FROM guide_step_place gsp
+     INNER JOIN guide_step gs ON gs.id = gsp.guide_step_id
+     WHERE gsp.place_id = p.id) AS save_count,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
     ST_Distance(
         p.location::geography,
@@ -302,7 +308,10 @@ SELECT
     COALESCE(p.tags, '[]'::jsonb) AS tags,
     p.opening_hours,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND liked = true) AS like_count,
-    (SELECT COUNT(*)::int FROM collection_place WHERE place_id = p.id) AS save_count,
+    (SELECT COUNT(DISTINCT gs.guide_id)::int
+     FROM guide_step_place gsp
+     INNER JOIN guide_step gs ON gs.id = gsp.guide_step_id
+     WHERE gsp.place_id = p.id) AS save_count,
     (SELECT COUNT(*)::int FROM user_place_interactions WHERE place_id = p.id AND hidden = true) AS hide_count,
     ST_Distance(
         p.location::geography,

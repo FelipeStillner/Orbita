@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type getPlaceCollectionItem struct {
+type getPlaceGuideItem struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
@@ -31,7 +31,7 @@ type getPlaceItem struct {
 	Description    string                   `json:"description"`
 	Category       string                   `json:"category"`
 	Liked          bool                     `json:"liked"`
-	Collections    []getPlaceCollectionItem `json:"collections"`
+	Guides         []getPlaceGuideItem      `json:"guides"`
 	Tags           []string                 `json:"tags,omitempty"`
 	OpeningHours   string                   `json:"opening_hours,omitempty"`
 	LikeCount      int32                    `json:"like_count"`
@@ -83,9 +83,9 @@ func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 			IsPrimary:   img.IsPrimary,
 		}
 	}
-	collections := make([]getPlaceCollectionItem, len(p.Collections))
-	for j, c := range p.Collections {
-		collections[j] = getPlaceCollectionItem{ID: c.ID.String(), Name: c.Name}
+	guides := make([]getPlaceGuideItem, len(p.Guides))
+	for j, g := range p.Guides {
+		guides[j] = getPlaceGuideItem{ID: g.ID.String(), Name: g.Name}
 	}
 	item := getPlaceItem{
 		ID:             p.ID.String(),
@@ -96,7 +96,7 @@ func (h *handler) handleGet(w http.ResponseWriter, r *http.Request) {
 		Description:    p.Description,
 		Category:       p.Category,
 		Liked:          p.Liked,
-		Collections:    collections,
+		Guides:         guides,
 		Tags:           p.Tags,
 		OpeningHours:   p.OpeningHours,
 		LikeCount:      p.LikeCount,

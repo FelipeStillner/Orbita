@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	authHandler "github.com/FelipeStillner/Orbita/internal/api/v1/auth"
-	collectionHandler "github.com/FelipeStillner/Orbita/internal/api/v1/collection"
+	guideHandler "github.com/FelipeStillner/Orbita/internal/api/v1/guide"
 	placeHandler "github.com/FelipeStillner/Orbita/internal/api/v1/place"
 	"github.com/FelipeStillner/Orbita/internal/database"
-	collectionService "github.com/FelipeStillner/Orbita/internal/service/collection"
+	guideService "github.com/FelipeStillner/Orbita/internal/service/guide"
 	placeService "github.com/FelipeStillner/Orbita/internal/service/place"
 
 	healthHandler "github.com/FelipeStillner/Orbita/internal/api/v1/health"
@@ -35,9 +35,9 @@ func (s *Server) mountRoutes() {
 	ph := placeHandler.NewHandler(ps)
 	ph.RegisterRoutes(s.Router)
 
-	cs := collectionService.NewService(s.Queries)
-	ch := collectionHandler.NewHandler(cs)
-	ch.RegisterRoutes(s.Router)
+	gs := guideService.NewService(s.Queries)
+	gh := guideHandler.NewHandler(gs)
+	gh.RegisterRoutes(s.Router)
 
 	hs := healthHandler.NewHandler()
 	hs.RegisterRoutes(s.Router)

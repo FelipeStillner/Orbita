@@ -1,3 +1,3 @@
-export * from "./collections";
+export * from "./guides";
 export * from "./fetchPlaces";
 export * from "./fetchPlace";

@@ -43,20 +43,20 @@ func (s *Service) ListPlaces(ctx context.Context, userID uuid.UUID, lat, long fl
 		}
 	}
 
-	var collectionsByPlace map[uuid.UUID][]types.CollectionItem
+	var guidesByPlace map[uuid.UUID][]types.GuideItem
 	if len(placeIDs) > 0 {
-		collectionRows, err := s.queries.ListCollectionItemsByPlaceIDs(ctx, database.ListCollectionItemsByPlaceIDsParams{
+		guideRows, err := s.queries.ListGuideItemsByPlaceIDs(ctx, database.ListGuideItemsByPlaceIDsParams{
 			UserID:   userID,
 			PlaceIds: placeIDs,
 		})
 		if err != nil {
 			return nil, err
 		}
-		collectionsByPlace = make(map[uuid.UUID][]types.CollectionItem)
-		for _, r := range collectionRows {
-			collectionsByPlace[r.PlaceID] = append(collectionsByPlace[r.PlaceID], types.CollectionItem{
-				ID:   r.CollectionID,
-				Name: r.Name,
+		guidesByPlace = make(map[uuid.UUID][]types.GuideItem)
+		for _, r := range guideRows {
+			guidesByPlace[r.PlaceID] = append(guidesByPlace[r.PlaceID], types.GuideItem{
+				ID:   r.GuideID,
+				Name: r.GuideName,
 			})
 		}
 	}
@@ -67,9 +67,9 @@ func (s *Service) ListPlaces(ctx context.Context, userID uuid.UUID, lat, long fl
 		if imagesByPlace != nil {
 			images = imagesByPlace[row.ID]
 		}
-		var collections []types.CollectionItem
-		if collectionsByPlace != nil {
-			collections = collectionsByPlace[row.ID]
+		var guides []types.GuideItem
+		if guidesByPlace != nil {
+			guides = guidesByPlace[row.ID]
 		}
 		var tags []string
 		if row.Tags.Valid {
@@ -89,7 +89,7 @@ func (s *Service) ListPlaces(ctx context.Context, userID uuid.UUID, lat, long fl
 			Description:    row.Description.String,
 			Category:       row.Category,
 			Liked:          row.Liked,
-			Collections:    collections,
+			Guides:         guides,
 			Tags:           tags,
 			OpeningHours:   row.OpeningHours.String,
 			LikeCount:      row.LikeCount,

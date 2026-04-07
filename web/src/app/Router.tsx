@@ -3,7 +3,8 @@ import { useAuth } from "@context/AuthContext";
 import AppLayout from "./AppLayout";
 import HomePage from "../features/home/HomePage";
 import MapPage from "../features/map/MapPage";
-import CollectionsPage from "../features/collections/CollectionsPage";
+import GuidesPage from "../features/guides/GuidesPage";
+import GuideDetailPage from "../features/guides/GuideDetailPage";
 import ProfilePage from "../features/profile/ProfilePage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -19,10 +20,18 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "map", element: <MapPage /> },
       {
-        path: "collections",
+        path: "guides",
         element: (
           <ProtectedRoute>
-            <CollectionsPage />
+            <GuidesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "guides/:guideId",
+        element: (
+          <ProtectedRoute>
+            <GuideDetailPage />
           </ProtectedRoute>
         ),
       },

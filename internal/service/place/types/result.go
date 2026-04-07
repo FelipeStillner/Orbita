@@ -8,7 +8,7 @@ type PlaceImage struct {
 	IsPrimary   bool
 }
 
-type CollectionItem struct {
+type GuideItem struct {
 	ID   uuid.UUID
 	Name string
 }
@@ -22,7 +22,7 @@ type Result struct {
 	Description     string
 	Category        string
 	Liked           bool
-	Collections     []CollectionItem
+	Guides          []GuideItem
 	Tags            []string
 	OpeningHours    string
 	LikeCount       int32

@@ -42,18 +42,18 @@ func (s *Service) GetByID(ctx context.Context, userID, placeID uuid.UUID, viewer
 		})
 	}
 
-	collectionRows, err := s.queries.ListCollectionItemsByPlaceIDs(ctx, database.ListCollectionItemsByPlaceIDsParams{
+	guideRows, err := s.queries.ListGuideItemsByPlaceIDs(ctx, database.ListGuideItemsByPlaceIDsParams{
 		UserID:   userID,
 		PlaceIds: placeIDs,
 	})
 	if err != nil {
 		return nil, err
 	}
-	collections := make([]types.CollectionItem, 0, len(collectionRows))
-	for _, r := range collectionRows {
-		collections = append(collections, types.CollectionItem{
-			ID:   r.CollectionID,
-			Name: r.Name,
+	guides := make([]types.GuideItem, 0, len(guideRows))
+	for _, r := range guideRows {
+		guides = append(guides, types.GuideItem{
+			ID:   r.GuideID,
+			Name: r.GuideName,
 		})
 	}
 
@@ -82,7 +82,7 @@ func (s *Service) GetByID(ctx context.Context, userID, placeID uuid.UUID, viewer
 		Description:    row.Description.String,
 		Category:       row.Category,
 		Liked:          row.Liked,
-		Collections:    collections,
+		Guides:         guides,
 		Tags:           tags,
 		OpeningHours:   row.OpeningHours.String,
 		LikeCount:      row.LikeCount,
